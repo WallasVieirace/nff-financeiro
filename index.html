@@ -178,6 +178,8 @@
   .content{ animation:fadeIn .28s ease; }
 
   .grid-2{ display:grid; grid-template-columns:1.3fr 1fr; gap:18px; align-items:start; }
+  .grid-2 + .grid-2{ margin-top:18px; }
+  .cards-row-4{ grid-template-columns:repeat(4,1fr); }
 
   /* bars */
   .bar-row{ display:flex; align-items:center; gap:12px; padding:9px 0; }
@@ -380,6 +382,15 @@
     color:#e0b84a; background:rgba(224,184,74,.12); border:1px solid rgba(224,184,74,.3);
     padding:5px 9px; border-radius:7px; margin-bottom:12px; display:inline-block;
   }
+  .analise-list{ list-style:none; display:flex; flex-direction:column; gap:10px; }
+  .analise-list li{
+    font-size:13px; line-height:1.5; padding:10px 12px 10px 34px; border-radius:9px; position:relative;
+  }
+  .analise-list li::before{ position:absolute; left:11px; top:10px; font-size:13px; }
+  .analise-list.positivo li{ background:var(--green-soft); color:#0e5a44; }
+  .analise-list.positivo li::before{ content:"✓"; color:var(--green); font-weight:700; }
+  .analise-list.atencao li{ background:var(--red-soft); color:#7a2626; }
+  .analise-list.atencao li::before{ content:"!"; color:var(--red); font-weight:700; }
 
   /* DRE */
   .dre-period{ display:flex; justify-content:flex-end; margin-bottom:14px; }
@@ -722,6 +733,13 @@ function fmtMoney(v){
   const n = Number(v)||0;
   return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
+function trendBadge(pct, orientacaoAltaBoa, sufixo){
+  if(pct === null || !isFinite(pct)) return "";
+  const bom = orientacaoAltaBoa ? pct >= 0 : pct <= 0;
+  const seta = pct >= 0 ? "↑" : "↓";
+  const cor = bom ? "var(--green)" : "var(--red)";
+  return `<div style="font-size:10.5px; color:${cor}; margin-top:2px;">${seta} ${Math.abs(pct).toFixed(1)}${sufixo||"%"} vs mês anterior</div>`;
+}
 function fmtDate(d){
   if(!d) return "—";
   const [y,m,day] = d.split("-");
@@ -734,6 +752,11 @@ function monthLabel(ym){
 }
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 function thisMonthYM(){ return new Date().toISOString().slice(0,7); }
+function mesAnterior(ym){
+  const [y,m] = ym.split("-").map(Number);
+  const d = new Date(y, m-2, 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
 
 function catName(tipo, id){
   const list = tipo === "receita" ? state.categoriasReceita : state.categoriasDespesa;
@@ -779,6 +802,7 @@ function contaLabel(id){
 let currentView = "dashboard";
 let dashPeriod = thisMonthYM(); // "YYYY-MM" ou "all"
 let drePeriod = thisMonthYM();
+let analisePeriod = thisMonthYM();
 let reportType = "dre"; // dre | receitas | despesas | fluxo
 let filters = { tipo:"todos", periodo:"all", busca:"" };
 let buscaClientes = "";
@@ -807,6 +831,7 @@ const ICONS = {
   fornecedores: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="7" width="14" height="10" rx="1"/><path d="M15 10h3l3 3v4h-6z"/><circle cx="6" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>`,
   print: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M6 17v4h12v-4"/></svg>`,
   dre: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 3h13l3 3v15H4z"/><path d="M8 11h8M8 15h8M8 7h4"/></svg>`,
+  analise: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a6 6 0 0 0-4 10.5c.6.5 1 1.3 1 2.1V16h6v-1.4c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 2Z"/></svg>`,
   exportIc: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>`,
   importIc: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>`,
   edit: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
@@ -853,6 +878,8 @@ function render(){
         ${navBtn("lancamentos","lista","Todos os Lançamentos")}
         <div class="nav-label">Relatórios</div>
         ${navBtn("relatorios","dre","Relatórios")}
+        <div class="nav-label">Análise</div>
+        ${navBtn("analise","analise","Análise")}
         <div class="nav-label">Cadastros</div>
         ${navBtn("classificacoes","tags","Classificações")}
         ${navBtn("pagamentos","banco","Bancos e Pagamentos")}
@@ -879,7 +906,7 @@ function render(){
           ${podeEditar() ? `<button id="btnImport" class="link-btn">${ICONS.importIc} Importar dados</button>` : ""}
           <button id="btnTemplate" class="link-btn">${ICONS.exportIc} Baixar modelo de planilha</button>
           ${podeEditar() ? `<input type="file" id="fileImport" accept=".json,application/json,.xlsx,.xls,.csv" style="display:none" />` : ""}
-          <div class="import-hint">Backup: .json &nbsp;·&nbsp; Lançamentos: .xlsx / .csv</div>
+          <div class="import-hint">Backup: .json &nbsp;·&nbsp; Lançamentos: .xlsx / .csv (Tipo é opcional — valor negativo = despesa)</div>
         </div>
         <div style="margin-top:10px;">NFF Serviços LTDA<br>Recepção · Limpeza · Portaria · Jardinagem</div>
       </div>
@@ -1047,6 +1074,7 @@ function topbar(){
     fornecedores:["Fornecedores","Cadastro de fornecedores com CPF ou CNPJ"],
     usuarios:["Usuários","Pessoas com acesso ao programa"],
     relatorios:["Relatórios","Escolha o tipo de relatório para analisar o período"],
+    analise:["Análise","Leitura automática do cenário financeiro, com pontos positivos e de atenção"],
   };
   const [t,s] = titles[currentView] || titles.dashboard;
   return `
@@ -1092,6 +1120,7 @@ function viewContent(){
   if(currentView === "fornecedores") return fornecedoresView();
   if(currentView === "usuarios") return podeGerenciarUsuarios() ? usuariosView() : acessoNegadoView();
   if(currentView === "relatorios") return relatoriosView();
+  if(currentView === "analise") return analiseView();
   return "";
 }
 
@@ -1122,6 +1151,21 @@ function dashboardView(){
   const totalR = receitas.reduce((a,l)=>a+Number(l.valor),0);
   const totalD = despesas.reduce((a,l)=>a+Number(l.valor),0);
   const saldo = totalR - totalD;
+  const margem = totalR > 0 ? (saldo/totalR*100) : null;
+
+  let variR = null, variD = null, variSaldo = null, variMargem = null;
+  if(dashPeriod !== "all"){
+    const anterior = mesAnterior(dashPeriod);
+    const lancsAnt = filteredByPeriod(state.lancamentos, anterior);
+    const totalRAnt = lancsAnt.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor),0);
+    const totalDAnt = lancsAnt.filter(l=>l.tipo==="despesa").reduce((a,l)=>a+Number(l.valor),0);
+    const saldoAnt = totalRAnt - totalDAnt;
+    const margemAnt = totalRAnt > 0 ? (saldoAnt/totalRAnt*100) : null;
+    if(totalRAnt > 0) variR = (totalR-totalRAnt)/totalRAnt*100;
+    if(totalDAnt > 0) variD = (totalD-totalDAnt)/totalDAnt*100;
+    if(saldoAnt !== 0) variSaldo = (saldo-saldoAnt)/Math.abs(saldoAnt)*100;
+    if(margem !== null && margemAnt !== null) variMargem = margem - margemAnt;
+  }
 
   const porCategoria = (list, cats) => {
     const map = {};
@@ -1144,6 +1188,24 @@ function dashboardView(){
   const totalAtrasados = atrasados.reduce((a,l)=>a+Number(l.valor),0);
   const totalPendentes = pendentes.reduce((a,l)=>a+Number(l.valor),0);
 
+  const saldoContas = state.contasBancarias.map(c=>{
+    const movs = state.lancamentos.filter(l=>l.contaId===c.id);
+    const r = movs.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor),0);
+    const d = movs.filter(l=>l.tipo==="despesa").reduce((a,l)=>a+Number(l.valor),0);
+    return { nome: `${bancoNomeById(c.bancoId)||"—"}${c.numero?" · Cc "+c.numero:""}`, saldo: r-d, movs: movs.length };
+  }).filter(c=>c.movs>0).sort((a,b)=>Math.abs(b.saldo)-Math.abs(a.saldo));
+  const maxSaldoConta = Math.max(1, ...saldoContas.map(c=>Math.abs(c.saldo)));
+
+  const topClientes = (()=>{
+    const map = {};
+    receitas.forEach(l=>{
+      const key = (l.parte||"").trim();
+      if(!key) return;
+      map[key] = (map[key]||0) + Number(l.valor);
+    });
+    return Object.entries(map).map(([nome,valor])=>({nome,valor})).sort((a,b)=>b.valor-a.valor).slice(0,5);
+  })();
+
   return `
     ${(atrasados.length || pendentes.length) ? `
     <div class="pending-alert">
@@ -1158,7 +1220,7 @@ function dashboardView(){
           <div><strong>${pendentes.length}</strong> lançamento(s) pendente(s) <span class="pa-val">R$ ${fmtMoney(totalPendentes)}</span></div>
         </div>` : ""}
     </div>` : ""}
-    <div class="cards-row">
+    <div class="cards-row cards-row-4">
       <div class="card acc-green">
         <div class="card-top">
           <div class="kpi-label">Receitas</div>
@@ -1166,6 +1228,7 @@ function dashboardView(){
         </div>
         <div class="kpi-value green">R$ ${fmtMoney(totalR)}</div>
         <div class="kpi-sub">${receitas.length} lançamento(s)</div>
+        ${trendBadge(variR, true)}
       </div>
       <div class="card acc-red">
         <div class="card-top">
@@ -1174,6 +1237,7 @@ function dashboardView(){
         </div>
         <div class="kpi-value red">R$ ${fmtMoney(totalD)}</div>
         <div class="kpi-sub">${despesas.length} lançamento(s)</div>
+        ${trendBadge(variD, false)}
       </div>
       <div class="card ${saldo>=0?'acc-green':'acc-red'}">
         <div class="card-top">
@@ -1182,6 +1246,38 @@ function dashboardView(){
         </div>
         <div class="kpi-value" style="color:${saldo>=0 ? 'var(--green)':'var(--red)'}">R$ ${fmtMoney(saldo)}</div>
         <div class="kpi-sub">${saldo>=0 ? "Resultado positivo" : "Resultado negativo"}</div>
+        ${trendBadge(variSaldo, true)}
+      </div>
+      <div class="card acc-navy">
+        <div class="card-top">
+          <div class="kpi-label">Margem líquida</div>
+          <div class="card-icon navy">${ICONS.dre}</div>
+        </div>
+        <div class="kpi-value" style="color:var(--navy-900)">${margem===null ? "—" : margem.toFixed(1)+"%"}</div>
+        <div class="kpi-sub">${margem===null ? "Sem receita no período" : (margem>=20 ? "Patamar saudável" : margem>=10 ? "Patamar razoável" : "Abaixo do recomendado")}</div>
+        ${variMargem===null ? "" : trendBadge(variMargem, true, " pts")}
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><h2>Saldo por conta bancária</h2><span class="hint">acumulado</span></div>
+        ${saldoContas.length ? saldoContas.map(c=>`
+          <div class="bar-row">
+            <div class="label" title="${c.nome}">${c.nome}</div>
+            <div class="bar-track"><div class="bar-fill ${c.saldo>=0?'green':'red'}" style="width:${(Math.abs(c.saldo)/maxSaldoConta*100).toFixed(1)}%"></div></div>
+            <div class="bar-val" style="color:${c.saldo>=0?'var(--green)':'var(--red)'}">R$ ${fmtMoney(c.saldo)}</div>
+          </div>
+        `).join("") : `<div class="empty-state"><div class="glyph">🏦</div><div class="t">Nenhum lançamento vinculado a conta</div>Informe a conta bancária nos lançamentos para ver esse resumo.</div>`}
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Top clientes</h2><span class="hint">${dashPeriod==="all"?"todo o período":monthLabel(dashPeriod)}</span></div>
+        ${topClientes.length ? topClientes.map((c,i)=>`
+          <div class="bar-row">
+            <div class="label" title="${c.nome}">${i+1}. ${c.nome}</div>
+            <div class="bar-val" style="margin-left:auto; color:var(--green)">R$ ${fmtMoney(c.valor)}</div>
+          </div>
+        `).join("") : `<div class="empty-state"><div class="glyph">🧾</div><div class="t">Nenhuma receita com cliente informado</div></div>`}
       </div>
     </div>
 
@@ -2175,6 +2271,138 @@ function porClienteReport(){
   `;
 }
 
+/* ---------------------------------------------------------
+   ANÁLISE (leitura automática do cenário)
+--------------------------------------------------------- */
+function analiseView(){
+  const lancs = filteredByPeriod(state.lancamentos, analisePeriod);
+  const receitas = lancs.filter(l=>l.tipo==="receita");
+  const despesas = lancs.filter(l=>l.tipo==="despesa");
+  const totalR = receitas.reduce((a,l)=>a+Number(l.valor),0);
+  const totalD = despesas.reduce((a,l)=>a+Number(l.valor),0);
+  const saldo = totalR - totalD;
+  const margem = totalR > 0 ? (saldo/totalR*100) : null;
+
+  const positivos = [];
+  const atencao = [];
+
+  if(!lancs.length){
+    return `
+      <div class="report-tabs no-print">
+        <div></div>
+        <div>${periodSelector("analisePeriodSel", analisePeriod)}</div>
+      </div>
+      <div class="panel"><div class="empty-state"><div class="glyph">🔎</div><div class="t">Sem lançamentos no período selecionado</div>Registre receitas e despesas para gerar a análise.</div></div>
+    `;
+  }
+
+  // resultado do período
+  if(saldo > 0) positivos.push(`Resultado positivo de <strong>R$ ${fmtMoney(saldo)}</strong> no período${margem!==null?` (margem de ${margem.toFixed(1)}%)`:""}.`);
+  else if(saldo < 0) atencao.push(`Resultado negativo de <strong>R$ ${fmtMoney(Math.abs(saldo))}</strong> no período — despesas superaram receitas.`);
+
+  // comparação com mês anterior
+  if(analisePeriod !== "all"){
+    const anterior = mesAnterior(analisePeriod);
+    const lancsAnt = filteredByPeriod(state.lancamentos, anterior);
+    const totalRAnt = lancsAnt.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor),0);
+    const totalDAnt = lancsAnt.filter(l=>l.tipo==="despesa").reduce((a,l)=>a+Number(l.valor),0);
+    if(totalRAnt > 0){
+      const variR = (totalR-totalRAnt)/totalRAnt*100;
+      if(variR >= 5) positivos.push(`Receita cresceu <strong>${variR.toFixed(1)}%</strong> em relação ao mês anterior.`);
+      else if(variR <= -5) atencao.push(`Receita caiu <strong>${Math.abs(variR).toFixed(1)}%</strong> em relação ao mês anterior.`);
+    }
+    if(totalDAnt > 0){
+      const variD = (totalD-totalDAnt)/totalDAnt*100;
+      if(variD <= -5) positivos.push(`Despesas caíram <strong>${Math.abs(variD).toFixed(1)}%</strong> em relação ao mês anterior.`);
+      else if(variD >= 15) atencao.push(`Despesas subiram <strong>${variD.toFixed(1)}%</strong> em relação ao mês anterior — bem acima do usual.`);
+    }
+  }
+
+  // margem líquida
+  if(margem !== null){
+    if(margem >= 20) positivos.push(`Margem líquida de <strong>${margem.toFixed(1)}%</strong> está em um patamar saudável para serviços terceirizados.`);
+    else if(margem < 10) atencao.push(`Margem líquida de <strong>${margem.toFixed(1)}%</strong> está abaixo do recomendado para o setor (referência: 15–25%).`);
+  }
+
+  // concentração de clientes
+  if(receitas.length){
+    const porCliente = {};
+    receitas.forEach(l=>{ const k=(l.parte||"").trim(); if(k) porCliente[k]=(porCliente[k]||0)+Number(l.valor); });
+    const ranking = Object.entries(porCliente).sort((a,b)=>b[1]-a[1]);
+    if(ranking.length){
+      const [topNome, topValor] = ranking[0];
+      const pct = topValor/totalR*100;
+      if(pct >= 40) atencao.push(`O cliente <strong>${topNome}</strong> concentra <strong>${pct.toFixed(1)}%</strong> da receita do período — depender de poucos clientes é um risco.`);
+      else if(ranking.length >= 3 && pct < 25) positivos.push(`Boa diversificação de carteira: nenhum cliente concentra mais que <strong>${pct.toFixed(0)}%</strong> da receita do período.`);
+    }
+  }
+
+  // maior linha de despesa
+  if(despesas.length){
+    const porCat = {};
+    despesas.forEach(l=>{ porCat[l.categoriaId]=(porCat[l.categoriaId]||0)+Number(l.valor); });
+    const ranking = Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
+    if(ranking.length){
+      const [catId, catValor] = ranking[0];
+      const pct = catValor/totalD*100;
+      const nome = catName("despesa", catId);
+      if(pct >= 50) atencao.push(`<strong>${nome}</strong> representa <strong>${pct.toFixed(1)}%</strong> das despesas do período — é a maior linha de custo.`);
+    }
+  }
+
+  // inadimplência (visão geral, não só do período)
+  const emAberto = state.lancamentos.filter(l=>l.status==="Pendente" || l.status==="Atrasado");
+  const atrasados = emAberto.filter(l=>l.status==="Atrasado");
+  const pendentes = emAberto.filter(l=>l.status==="Pendente");
+  if(atrasados.length){
+    atencao.push(`<strong>${atrasados.length}</strong> lançamento(s) atrasado(s), somando <strong>R$ ${fmtMoney(atrasados.reduce((a,l)=>a+Number(l.valor),0))}</strong>.`);
+  } else {
+    positivos.push(`Nenhum lançamento atrasado no momento.`);
+  }
+  if(pendentes.length){
+    atencao.push(`<strong>${pendentes.length}</strong> lançamento(s) pendente(s), somando <strong>R$ ${fmtMoney(pendentes.reduce((a,l)=>a+Number(l.valor),0))}</strong>.`);
+  }
+
+  return `
+    <div class="report-tabs no-print">
+      <div></div>
+      <div>${periodSelector("analisePeriodSel", analisePeriod)}</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Resumo do cenário</h2><span class="hint">${analisePeriod==="all"?"todo o período":monthLabel(analisePeriod)}</span></div>
+      <div class="dre-margin">
+        <div class="mcard">
+          <div class="kpi-label">Resultado</div>
+          <div class="mv" style="color:${saldo>=0?'var(--green)':'var(--red)'}">R$ ${fmtMoney(saldo)}</div>
+        </div>
+        <div class="mcard">
+          <div class="kpi-label">Margem líquida</div>
+          <div class="mv" style="color:var(--navy-900)">${margem===null?"—":margem.toFixed(1)+"%"}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><h2>Pontos positivos</h2><span class="hint">${positivos.length}</span></div>
+        ${positivos.length ? `<ul class="analise-list positivo">${positivos.map(p=>`<li>${p}</li>`).join("")}</ul>`
+          : `<div class="empty-state"><div class="glyph">🙂</div><div class="t">Nada de especialmente positivo a destacar</div></div>`}
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Pontos de atenção</h2><span class="hint">${atencao.length}</span></div>
+        ${atencao.length ? `<ul class="analise-list atencao">${atencao.map(p=>`<li>${p}</li>`).join("")}</ul>`
+          : `<div class="empty-state"><div class="glyph">✅</div><div class="t">Nenhum ponto de atenção identificado</div></div>`}
+      </div>
+    </div>
+
+    <div class="dre-note">
+      Esta análise é gerada automaticamente a partir de regras aplicadas aos seus lançamentos (comparação com o mês anterior,
+      margem, concentração de clientes e despesas, e inadimplência). Não substitui a avaliação de um contador ou gestor financeiro.
+    </div>
+  `;
+}
+
 function catGrupoDRE(categoriaId){
   const c = state.categoriasDespesa.find(c=>c.id===categoriaId);
   return c ? (c.grupoDRE || "administrativa") : "administrativa";
@@ -2212,6 +2440,8 @@ function attachHandlers(){
   if(sel) sel.addEventListener("change", e=>{ dashPeriod = e.target.value; render(); });
   const relSel = document.getElementById("relPeriodSel");
   if(relSel) relSel.addEventListener("change", e=>{ drePeriod = e.target.value; render(); });
+  const analiseSel = document.getElementById("analisePeriodSel");
+  if(analiseSel) analiseSel.addEventListener("change", e=>{ analisePeriod = e.target.value; render(); });
   document.querySelectorAll("[data-report]").forEach(el=>{
     el.addEventListener("click", ()=>{ reportType = el.getAttribute("data-report"); render(); });
   });
@@ -2337,20 +2567,24 @@ function parseSpreadsheetRows(rows){
   rows.forEach((row, idx)=>{
     const linha = idx + 2; // +1 para header, +1 porque idx começa em 0
     try{
+      const valorBruto = parseValor(getCell(row, ["valor","valor (r$)","valor(r$)"]));
+      if(!isFinite(valorBruto) || valorBruto === 0) throw new Error(`coluna "Valor" ausente ou inválida`);
+      const valor = Math.abs(valorBruto);
+
       const tipoRaw = String(getCell(row, ["tipo"]) || "").trim().toLowerCase();
       let tipo = null;
       if(tipoRaw.startsWith("r")) tipo = "receita";
       else if(tipoRaw.startsWith("d")) tipo = "despesa";
-      if(!tipo) throw new Error(`coluna "Tipo" ausente ou inválida (use Receita ou Despesa)`);
+      if(!tipo){
+        // sem coluna "Tipo" na planilha: infere pelo sinal do valor (negativo = despesa, positivo = receita)
+        tipo = valorBruto < 0 ? "despesa" : "receita";
+      }
 
       const dataISO = parseDataCell(getCell(row, ["data"]));
       if(!dataISO) throw new Error(`coluna "Data" ausente ou em formato inválido (use DD/MM/AAAA)`);
 
       const descricao = String(getCell(row, ["descrição","descricao","desc"]) || "").trim();
       if(!descricao) throw new Error(`coluna "Descrição" ausente`);
-
-      const valor = parseValor(getCell(row, ["valor","valor (r$)","valor(r$)"]));
-      if(!isFinite(valor) || valor <= 0) throw new Error(`coluna "Valor" ausente ou inválida`);
 
       const categoriaNome = String(getCell(row, ["classificação","classificacao","categoria"]) || "").trim();
       if(!categoriaNome) throw new Error(`coluna "Classificação" ausente`);
@@ -2372,6 +2606,19 @@ function parseSpreadsheetRows(rows){
         bancoId = banco.id;
       }
 
+      const contaRaw = String(getCell(row, ["conta","número da conta","numero da conta","nº da conta","n° da conta"]) || "").trim();
+      let contaId = "";
+      if(contaRaw){
+        const digitosConta = contaRaw.replace(/\D/g,"");
+        let conta = state.contasBancarias.find(c => digitosConta && String(c.numero||"").replace(/\D/g,"") === digitosConta);
+        if(!conta && bancoId){
+          // conta ainda não cadastrada: cria automaticamente vinculada ao banco da linha
+          conta = { id: uid(), bancoId, tipoConta: "Corrente", agencia: "", numero: contaRaw, titular: "" };
+          state.contasBancarias.push(conta);
+        }
+        if(conta) contaId = conta.id;
+      }
+
       const tipoTransNome = String(getCell(row, ["tipo de transação","tipo de transacao","transação","transacao","forma de pagamento"]) || "").trim();
       let tipoTransacaoId = "";
       if(tipoTransNome){
@@ -2385,7 +2632,7 @@ function parseSpreadsheetRows(rows){
 
       state.lancamentos.push({
         id: uid(), tipo, data: dataISO, descricao, categoriaId: cat.id,
-        valor, parte, bancoId, tipoTransacaoId, status, obs
+        valor, parte, bancoId, contaId, tipoTransacaoId, status, obs
       });
       result.added++;
     }catch(err){
@@ -2413,11 +2660,12 @@ function importSpreadsheet(file){
         return;
       }
       const primeiraLinha = Object.keys(rows[0]).map(k=>k.trim().toLowerCase());
-      const colunasEsperadas = ["tipo","data","descrição","classificação","valor"];
+      const colunasEsperadas = ["data","descrição","classificação","valor"];
       const faltando = colunasEsperadas.filter(c=> !primeiraLinha.some(h=>h.includes(c.replace("ç","c").slice(0,4)) || h===c));
       if(faltando.length >= 3){
         alert("Essa planilha não parece seguir o modelo esperado.\n\n"+
-          "Colunas esperadas: Tipo, Data, Descrição, Classificação, Valor (e opcionalmente Cliente/Fornecedor, Banco, Tipo de Transação, Status, Observações).\n\n"+
+          "Colunas mínimas: Data, Descrição, Classificação, Valor (e opcionalmente Tipo, Cliente/Fornecedor, Banco, Conta, Tipo de Transação, Status, Observações).\n\n"+
+          "Se a planilha não tiver a coluna \"Tipo\", o sistema identifica Receita/Despesa automaticamente pelo sinal do valor (negativo = despesa).\n\n"+
           "Clique em \"Baixar modelo de planilha\" para ver um exemplo pronto.");
         return;
       }
