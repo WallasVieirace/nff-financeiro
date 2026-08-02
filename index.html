@@ -81,7 +81,7 @@
     font-weight:600;
   }
   .nav button{
-    all:unset; cursor:pointer;
+    all:unset; box-sizing:border-box; cursor:pointer;
     display:flex; align-items:center; gap:10px;
     padding:10px 12px; border-radius:10px;
     font-size:14px; color:rgba(255,255,255,.72); font-weight:500;
@@ -102,7 +102,7 @@
   }
   .backup-actions{ display:flex; flex-direction:column; gap:4px; }
   .link-btn{
-    all:unset; cursor:pointer; display:flex; align-items:center; gap:7px;
+    all:unset; box-sizing:border-box; cursor:pointer; display:flex; align-items:center; gap:7px;
     font-size:11.5px; font-weight:500; color:rgba(255,255,255,.55);
     padding:6px 2px; transition:color .12s;
   }
@@ -208,7 +208,7 @@
   .tag.despesa .bar{ background:var(--red); }
   .row-actions{ display:flex; gap:6px; justify-content:flex-end; }
   .icon-btn{
-    all:unset; cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+    all:unset; box-sizing:border-box; cursor:pointer; width:28px; height:28px; display:flex; align-items:center; justify-content:center;
     border-radius:7px; color:var(--ink-soft); transition:background .12s, color .12s;
   }
   .icon-btn:hover{ background:var(--paper-line); color:var(--ink); }
@@ -234,7 +234,7 @@
   .field.money input{ font-family:'IBM Plex Mono', monospace; }
 
   .btn{
-    all:unset; cursor:pointer; font-family:'Inter', sans-serif; font-weight:600; font-size:13.5px;
+    all:unset; box-sizing:border-box; cursor:pointer; font-family:'Inter', sans-serif; font-weight:600; font-size:13.5px;
     padding:11px 20px; border-radius:9px; text-align:center; transition:filter .12s, transform .05s;
   }
   .btn:active{ transform:translateY(1px); }
@@ -298,7 +298,7 @@
   .auth-card form{ text-align:left; }
   .auth-card .banner{ text-align:left; margin-bottom:16px; }
   .auth-link{
-    all:unset; cursor:pointer; display:inline-block; margin-top:18px; font-size:12.5px; font-weight:600;
+    all:unset; box-sizing:border-box; cursor:pointer; display:inline-block; margin-top:18px; font-size:12.5px; font-weight:600;
     color:var(--navy-700); text-decoration:underline; text-underline-offset:2px;
   }
   .auth-link:hover{ color:var(--navy-900); }
@@ -330,6 +330,17 @@
   .filters-row select, .filters-row input{
     font-size:12.5px; padding:8px 12px; border-radius:8px; border:1px solid var(--paper-line); background:var(--paper);
   }
+  .search-input{
+    width:100%; font-size:13px; padding:10px 14px; border-radius:9px; border:1px solid var(--paper-line);
+    background:var(--paper); margin-bottom:16px; font-family:'Inter', sans-serif;
+  }
+  .search-input:focus{ outline:none; border-color:var(--navy-700); background:#fff; }
+  .form-divider{
+    margin-top:4px; padding-top:14px; border-top:1px solid var(--paper-line);
+  }
+  .form-divider span{
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft);
+  }
 
   /* usuários */
   .avatar{
@@ -339,10 +350,36 @@
   .user-row{ display:flex; align-items:center; gap:12px; }
   .user-meta .nm{ font-weight:600; font-size:13px; }
   .user-meta .em{ font-size:11.5px; color:var(--ink-soft); }
-  .status-pill{ font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; }
-  .status-pill.ativo{ background:var(--green-soft); color:var(--green); }
-  .status-pill.inativo{ background:var(--red-soft); color:var(--red); }
+  .status-pill{ font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; white-space:nowrap; }
+  .status-pill.ativo, .status-pill.pago{ background:var(--green-soft); color:var(--green); }
+  .status-pill.inativo, .status-pill.atrasado{ background:var(--red-soft); color:var(--red); }
+  .status-pill.pendente{ background:#fbf1d9; color:#9c7a12; }
   .role-pill{ font-size:11.5px; font-weight:500; padding:3px 9px; border-radius:20px; background:#eef1f6; color:var(--navy-700); }
+
+  /* alerta de pendências no dashboard */
+  .pending-alert{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+  .pa-item{
+    flex:1; min-width:220px; display:flex; align-items:center; gap:10px;
+    padding:13px 16px; border-radius:12px; cursor:pointer; font-size:13px; color:var(--ink);
+    border:1px solid transparent; transition:filter .12s;
+  }
+  .pa-item:hover{ filter:brightness(0.97); }
+  .pa-item.atrasado{ background:var(--red-soft); border-color:rgba(201,76,76,.25); }
+  .pa-item.pendente{ background:#fbf1d9; border-color:rgba(156,122,18,.25); }
+  .pa-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .pa-item.atrasado .pa-dot{ background:var(--red); }
+  .pa-item.pendente .pa-dot{ background:#9c7a12; }
+  .pa-val{ font-family:'IBM Plex Mono', monospace; margin-left:6px; font-weight:600; }
+
+  .totals-row td{
+    border-top:2px solid var(--navy-900); border-bottom:none; padding-top:12px;
+    font-size:12.5px; font-weight:600; color:var(--ink-soft); background:#fafbfd;
+  }
+  .readonly-tag{
+    font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:#e0b84a; background:rgba(224,184,74,.12); border:1px solid rgba(224,184,74,.3);
+    padding:5px 9px; border-radius:7px; margin-bottom:12px; display:inline-block;
+  }
 
   /* DRE */
   .dre-period{ display:flex; justify-content:flex-end; margin-bottom:14px; }
@@ -364,14 +401,30 @@
   .report-tabs{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
   .tabs-group{ display:flex; gap:4px; background:var(--card); padding:4px; border-radius:11px; border:1px solid var(--paper-line); box-shadow:var(--shadow); }
   .tab-btn{
-    all:unset; cursor:pointer; font-size:12.5px; font-weight:600; padding:9px 15px; border-radius:8px;
+    all:unset; box-sizing:border-box; cursor:pointer; font-size:12.5px; font-weight:600; padding:9px 15px; border-radius:8px;
     color:var(--ink-soft); transition:background .15s, color .15s;
   }
   .tab-btn:hover:not(.active){ background:var(--paper); color:var(--ink); }
   .tab-btn.active{ background:var(--navy-900); color:#fff; }
 
+  .mobile-menu-btn{
+    display:none; align-items:center; justify-content:center; flex-shrink:0;
+    width:36px; height:36px; border-radius:9px; border:1px solid var(--paper-line);
+    background:var(--paper); color:var(--ink); cursor:pointer;
+  }
+  .mobile-overlay{ display:none; }
+
   @media (max-width: 880px){
-    .sidebar{ display:none; }
+    .sidebar{
+      display:flex; position:fixed; top:0; left:0; height:100vh; z-index:60;
+      transform:translateX(-100%); transition:transform .25s ease;
+      box-shadow:0 0 40px rgba(0,0,0,.35);
+    }
+    .sidebar.mobile-open{ transform:translateX(0); }
+    .mobile-overlay.show{
+      display:block; position:fixed; inset:0; background:rgba(13,22,38,.5); z-index:55;
+    }
+    .mobile-menu-btn{ display:flex; }
     .cards-row, .grid-2, .cat-cols, .form-grid{ grid-template-columns:1fr; }
     .content{ padding:20px; }
     .topbar{ padding:16px 20px; }
@@ -473,6 +526,10 @@ if(FIREBASE_READY){
     db = firebase.firestore();
     docRef = db.collection("nff_financeiro").doc("estado");
     auth = firebase.auth();
+    // sessão não persiste entre aberturas/atualizações — sempre exige login novamente
+    auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+      .catch(e => console.warn("Falha ao definir persistência de sessão:", e))
+      .then(() => iniciarAutenticacao());
   }catch(e){
     console.error("Falha ao iniciar Firebase:", e);
   }
@@ -487,6 +544,22 @@ let authView = "login"; // login | esqueci
 let authError = null;
 let authMsg = null;
 let authBusy = false;
+
+function usuarioLogado(){
+  if(!authUser || !authUser.email) return null;
+  return (state.usuarios||[]).find(u => (u.email||"").toLowerCase() === authUser.email.toLowerCase()) || null;
+}
+function perfilAtual(){
+  const u = usuarioLogado();
+  // sem cadastro correspondente em Usuários = acesso total (evita travar contas já existentes)
+  return u ? u.perfil : "Administrador";
+}
+function podeEditar(){
+  return perfilAtual() !== "Somente Leitura";
+}
+function podeGerenciarUsuarios(){
+  return perfilAtual() === "Administrador";
+}
 
 function iniciarAutenticacao(){
   if(!FIREBASE_READY || !auth){ authReady = true; render(); return; }
@@ -561,6 +634,7 @@ const DEFAULT_STATE = {
     {id:"tt5", nome:"Cartão"},
   ],
   clientes: [],
+  fornecedores: [],
   contasBancarias: [],
 };
 
@@ -576,6 +650,7 @@ function migrarEstado(parsed){
   state = Object.assign({}, DEFAULT_STATE, parsed);
   if(!Array.isArray(state.usuarios)) state.usuarios = [];
   if(!Array.isArray(state.clientes)) state.clientes = [];
+  if(!Array.isArray(state.fornecedores)) state.fornecedores = [];
   if(!Array.isArray(state.contasBancarias)) state.contasBancarias = [];
   if(!Array.isArray(state.bancos) || !state.bancos.length) state.bancos = JSON.parse(JSON.stringify(DEFAULT_STATE.bancos));
   if(!Array.isArray(state.tiposTransacao) || !state.tiposTransacao.length) state.tiposTransacao = JSON.parse(JSON.stringify(DEFAULT_STATE.tiposTransacao));
@@ -686,6 +761,10 @@ function bancoNomeById(id){
   const b = (state.bancos||[]).find(b=>b.id===id);
   return b ? b.nome : "";
 }
+function statusPill(status){
+  const cls = status === "Pago" ? "pago" : status === "Atrasado" ? "atrasado" : status === "Pendente" ? "pendente" : "";
+  return `<span class="status-pill ${cls}">${status||"—"}</span>`;
+}
 function contaLabel(id){
   const c = (state.contasBancarias||[]).find(c=>c.id===id);
   if(!c) return "";
@@ -702,10 +781,19 @@ let dashPeriod = thisMonthYM(); // "YYYY-MM" ou "all"
 let drePeriod = thisMonthYM();
 let reportType = "dre"; // dre | receitas | despesas | fluxo
 let filters = { tipo:"todos", periodo:"all", busca:"" };
+let buscaClientes = "";
+let buscaFornecedores = "";
+let buscaContas = "";
 let banner = null;
+function mostrarBanner(msg){
+  banner = msg;
+  setTimeout(()=>{ banner=null; render(); }, 3500);
+}
 let editingUserId = null;
 let editingClienteId = null;
+let editingFornecedorId = null;
 let editingContaId = null;
+let mobileNavOpen = false;
 
 const ICONS = {
   dashboard: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`,
@@ -716,6 +804,7 @@ const ICONS = {
   usuarios: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M17 8.2a3 3 0 1 1 3.2 3"/><path d="M21.5 20c0-2.9-1.9-5.1-4.6-5.8"/></svg>`,
   banco: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18"/><path d="M4 21V10M9 21V10M15 21V10M20 21V10"/><path d="M2.5 10 12 3l9.5 7Z"/></svg>`,
   clientes: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v14"/><path d="M14 9h4a2 2 0 0 1 2 2v9"/><path d="M8 8h.01M8 12h.01M8 16h.01"/><path d="M2 20h20"/></svg>`,
+  fornecedores: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="7" width="14" height="10" rx="1"/><path d="M15 10h3l3 3v4h-6z"/><circle cx="6" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>`,
   print: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M6 17v4h12v-4"/></svg>`,
   dre: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 3h13l3 3v15H4z"/><path d="M8 11h8M8 15h8M8 7h4"/></svg>`,
   exportIc: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>`,
@@ -724,7 +813,7 @@ const ICONS = {
   trash: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`,
 };
 
-function setView(v){ currentView = v; editingId = null; editingUserId = null; editingClienteId = null; editingContaId = null; render(); }
+function setView(v){ currentView = v; editingId = null; editingUserId = null; editingClienteId = null; editingFornecedorId = null; editingContaId = null; mobileNavOpen = false; render(); }
 
 /* ---------------------------------------------------------
    RENDER PRINCIPAL
@@ -749,7 +838,8 @@ function render(){
   }
 
   root.innerHTML = `
-    <div class="sidebar">
+    <div class="mobile-overlay ${mobileNavOpen?'show':''}" id="mobileOverlay"></div>
+    <div class="sidebar ${mobileNavOpen?'mobile-open':''}">
       <div class="sidebar-logo">
         <img src="${LOGO_SRC}" alt="NFF Serviços LTDA" />
         <div class="sidebar-tag">Painel Financeiro</div>
@@ -758,8 +848,8 @@ function render(){
         <div class="nav-label">Visão Geral</div>
         ${navBtn("dashboard","dashboard","Dashboard")}
         <div class="nav-label">Lançamentos</div>
-        ${navBtn("nova-receita","receita","Nova Receita")}
-        ${navBtn("nova-despesa","despesa","Nova Despesa")}
+        ${podeEditar() ? navBtn("nova-receita","receita","Nova Receita") : ""}
+        ${podeEditar() ? navBtn("nova-despesa","despesa","Nova Despesa") : ""}
         ${navBtn("lancamentos","lista","Todos os Lançamentos")}
         <div class="nav-label">Relatórios</div>
         ${navBtn("relatorios","dre","Relatórios")}
@@ -767,9 +857,11 @@ function render(){
         ${navBtn("classificacoes","tags","Classificações")}
         ${navBtn("pagamentos","banco","Bancos e Pagamentos")}
         ${navBtn("clientes","clientes","Clientes")}
-        ${navBtn("usuarios","usuarios","Usuários")}
+        ${navBtn("fornecedores","fornecedores","Fornecedores")}
+        ${podeGerenciarUsuarios() ? navBtn("usuarios","usuarios","Usuários") : ""}
       </div>
       <div class="sidebar-foot">
+        ${!podeEditar() ? `<div class="readonly-tag">👁 Somente leitura</div>` : ""}
         <div class="logged-user">
           <div class="avatar" style="width:26px;height:26px;font-size:11px;">${initials(authUser.email||"?")}</div>
           <div style="min-width:0;">
@@ -784,9 +876,9 @@ function render(){
         <div class="last-updated">${lastUpdated ? "Última atualização: "+lastUpdated.toLocaleString('pt-BR') : "Aguardando primeira sincronização…"}</div>
         <div class="backup-actions">
           <button id="btnExport" class="link-btn">${ICONS.exportIc} Exportar dados</button>
-          <button id="btnImport" class="link-btn">${ICONS.importIc} Importar dados</button>
+          ${podeEditar() ? `<button id="btnImport" class="link-btn">${ICONS.importIc} Importar dados</button>` : ""}
           <button id="btnTemplate" class="link-btn">${ICONS.exportIc} Baixar modelo de planilha</button>
-          <input type="file" id="fileImport" accept=".json,application/json,.xlsx,.xls,.csv" style="display:none" />
+          ${podeEditar() ? `<input type="file" id="fileImport" accept=".json,application/json,.xlsx,.xls,.csv" style="display:none" />` : ""}
           <div class="import-hint">Backup: .json &nbsp;·&nbsp; Lançamentos: .xlsx / .csv</div>
         </div>
         <div style="margin-top:10px;">NFF Serviços LTDA<br>Recepção · Limpeza · Portaria · Jardinagem</div>
@@ -794,7 +886,7 @@ function render(){
     </div>
     <div class="main">
       ${topbar()}
-      <div class="content">${syncError ? `<div class="banner err-banner no-print">${syncError}</div>` : ""}${viewContent()}</div>
+      <div class="content">${syncError ? `<div class="banner err-banner no-print">${syncError}</div>` : ""}${banner ? `<div class="banner ok no-print">${banner}</div>` : ""}${viewContent()}</div>
     </div>
   `;
   attachHandlers();
@@ -952,13 +1044,19 @@ function topbar(){
     classificacoes:["Classificações","Categorias usadas nos lançamentos"],
     pagamentos:["Bancos e Pagamentos","Bancos, contas bancárias e tipos de transação"],
     clientes:["Clientes","Cadastro de clientes com CPF ou CNPJ"],
+    fornecedores:["Fornecedores","Cadastro de fornecedores com CPF ou CNPJ"],
     usuarios:["Usuários","Pessoas com acesso ao programa"],
     relatorios:["Relatórios","Escolha o tipo de relatório para analisar o período"],
   };
   const [t,s] = titles[currentView] || titles.dashboard;
   return `
     <div class="topbar">
-      <div><div class="kicker">NFF Serviços · Financeiro</div><h1>${t}</h1><div class="sub">${s}</div></div>
+      <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+        <button class="mobile-menu-btn" id="btnMobileMenu" aria-label="Abrir menu">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div style="min-width:0;"><div class="kicker">NFF Serviços · Financeiro</div><h1>${t}</h1><div class="sub">${s}</div></div>
+      </div>
       <div class="topbar-right">
         ${currentView === "dashboard" ? periodSelector("dashPeriodSel", dashPeriod) : ""}
       </div>
@@ -985,15 +1083,28 @@ function getAvailableMonths(){
 function viewContent(){
   if(!ready) return `<div class="empty-state">Carregando…</div>`;
   if(currentView === "dashboard") return dashboardView();
-  if(currentView === "nova-receita") return lancamentoForm("receita");
-  if(currentView === "nova-despesa") return lancamentoForm("despesa");
+  if(currentView === "nova-receita") return podeEditar() ? lancamentoForm("receita") : acessoNegadoView();
+  if(currentView === "nova-despesa") return podeEditar() ? lancamentoForm("despesa") : acessoNegadoView();
   if(currentView === "lancamentos") return lancamentosView();
   if(currentView === "classificacoes") return classificacoesView();
   if(currentView === "pagamentos") return pagamentosView();
   if(currentView === "clientes") return clientesView();
-  if(currentView === "usuarios") return usuariosView();
+  if(currentView === "fornecedores") return fornecedoresView();
+  if(currentView === "usuarios") return podeGerenciarUsuarios() ? usuariosView() : acessoNegadoView();
   if(currentView === "relatorios") return relatoriosView();
   return "";
+}
+
+function acessoNegadoView(){
+  return `
+    <div class="panel" style="max-width:520px;">
+      <div class="empty-state">
+        <div class="glyph">🔒</div>
+        <div class="t">Acesso restrito</div>
+        Seu perfil (${perfilAtual()}) não tem permissão para acessar esta área.
+      </div>
+    </div>
+  `;
 }
 
 /* ---------------------------------------------------------
@@ -1027,7 +1138,26 @@ function dashboardView(){
 
   const recentes = [...lancs].sort((a,b)=> b.data.localeCompare(a.data) || b.id.localeCompare(a.id)).slice(0,6);
 
+  const emAberto = state.lancamentos.filter(l=>l.status==="Pendente" || l.status==="Atrasado");
+  const atrasados = emAberto.filter(l=>l.status==="Atrasado");
+  const pendentes = emAberto.filter(l=>l.status==="Pendente");
+  const totalAtrasados = atrasados.reduce((a,l)=>a+Number(l.valor),0);
+  const totalPendentes = pendentes.reduce((a,l)=>a+Number(l.valor),0);
+
   return `
+    ${(atrasados.length || pendentes.length) ? `
+    <div class="pending-alert">
+      ${atrasados.length ? `
+        <div class="pa-item atrasado" data-nav="lancamentos">
+          <span class="pa-dot"></span>
+          <div><strong>${atrasados.length}</strong> lançamento(s) atrasado(s) <span class="pa-val">R$ ${fmtMoney(totalAtrasados)}</span></div>
+        </div>` : ""}
+      ${pendentes.length ? `
+        <div class="pa-item pendente" data-nav="lancamentos">
+          <span class="pa-dot"></span>
+          <div><strong>${pendentes.length}</strong> lançamento(s) pendente(s) <span class="pa-val">R$ ${fmtMoney(totalPendentes)}</span></div>
+        </div>` : ""}
+    </div>` : ""}
     <div class="cards-row">
       <div class="card acc-green">
         <div class="card-top">
@@ -1085,7 +1215,7 @@ function dashboardView(){
       </div>
       ${recentes.length ? `
       <table>
-        <thead><tr><th>Data</th><th>Descrição</th><th>Classificação</th><th>Tipo</th><th style="text-align:right">Valor</th></tr></thead>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Classificação</th><th>Tipo</th><th>Status</th><th style="text-align:right">Valor</th></tr></thead>
         <tbody>
           ${recentes.map(l=>`
             <tr>
@@ -1093,6 +1223,7 @@ function dashboardView(){
               <td>${l.descricao || "—"}</td>
               <td>${catName(l.tipo, l.categoriaId)}</td>
               <td><span class="tag ${l.tipo}"><span class="bar"></span>${l.tipo==="receita"?"Receita":"Despesa"}</span></td>
+              <td>${statusPill(l.status)}</td>
               <td class="mono" style="text-align:right; color:${l.tipo==="receita"?"var(--green)":"var(--red)"}">
                 ${l.tipo==="receita"?"+":"−"} R$ ${fmtMoney(l.valor)}
               </td>
@@ -1123,7 +1254,6 @@ function lancamentoForm(tipo, existing){
 
   return `
     <div class="panel" style="max-width:760px;">
-      ${banner ? `<div class="banner ok">${banner}</div>` : ""}
       <div class="panel-head">
         <h2>${existing ? "Editar" : "Novo"} lançamento — ${tipo === "receita" ? "Receita" : "Despesa"}</h2>
       </div>
@@ -1145,12 +1275,16 @@ function lancamentoForm(tipo, existing){
         </div>
         <div class="field">
           <label>${partLabel}</label>
-          <input type="text" name="parte" placeholder="Nome do ${partLabel.toLowerCase()}" value="${l.parte||""}" />
+          <input type="text" name="parte" list="parteDatalist" placeholder="Nome do ${partLabel.toLowerCase()} (cadastrado ou novo)" value="${l.parte||""}" />
+          <datalist id="parteDatalist">
+            ${(tipo === "receita" ? state.clientes : state.fornecedores).map(p=>`<option value="${p.nome}">`).join("")}
+          </datalist>
         </div>
         <div class="field money">
           <label>Valor (R$)</label>
           <input type="number" step="0.01" min="0" name="valor" placeholder="0,00" value="${l.valor}" required />
         </div>
+        <div class="field full form-divider"><span>Pagamento</span></div>
         <div class="field">
           <label>Banco</label>
           <select name="bancoId">
@@ -1172,6 +1306,7 @@ function lancamentoForm(tipo, existing){
               : `<option value="">Cadastre um tipo em Cadastros → Bancos e Pagamentos</option>`}
           </select>
         </div>
+        <div class="field full form-divider"><span>Outras informações</span></div>
         <div class="field">
           <label>Status</label>
           <select name="status">
@@ -1209,6 +1344,10 @@ function lancamentosView(){
   }
   list.sort((a,b)=> b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
 
+  const totalR = list.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor),0);
+  const totalD = list.filter(l=>l.tipo==="despesa").reduce((a,l)=>a+Number(l.valor),0);
+  const saldoFiltro = totalR - totalD;
+
   const months = getAvailableMonths();
 
   return `
@@ -1237,19 +1376,27 @@ function lancamentosView(){
               <td>${catName(l.tipo,l.categoriaId)}</td>
               <td>${bancoName(l.bancoId)}${l.tipoTransacaoId?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${tipoTransacaoName(l.tipoTransacaoId)}</div>`:""}${l.contaId?`<div style="font-size:11px;color:var(--ink-soft);">${contaLabel(l.contaId)}</div>`:""}</td>
               <td><span class="tag ${l.tipo}"><span class="bar"></span>${l.tipo==="receita"?"Receita":"Despesa"}</span></td>
-              <td>${l.status||"—"}</td>
+              <td>${statusPill(l.status)}</td>
               <td class="mono" style="text-align:right; color:${l.tipo==="receita"?"var(--green)":"var(--red)"}">
                 ${l.tipo==="receita"?"+":"−"} R$ ${fmtMoney(l.valor)}
               </td>
               <td>
+                ${podeEditar() ? `
                 <div class="row-actions">
                   <button class="icon-btn" data-edit="${l.id}" title="Editar">${ICONS.edit}</button>
                   <button class="icon-btn danger" data-del="${l.id}" title="Excluir">${ICONS.trash}</button>
-                </div>
+                </div>` : ""}
               </td>
             </tr>
           `).join("")}
         </tbody>
+        <tfoot>
+          <tr class="totals-row">
+            <td colspan="6">${list.length} lançamento(s) · Receitas <span class="mono" style="color:var(--green)">R$ ${fmtMoney(totalR)}</span> · Despesas <span class="mono" style="color:var(--red)">R$ ${fmtMoney(totalD)}</span></td>
+            <td class="mono" style="text-align:right; color:${saldoFiltro>=0?'var(--green)':'var(--red)'}">R$ ${fmtMoney(saldoFiltro)}</td>
+            <td></td>
+          </tr>
+        </tfoot>
       </table>` : `<div class="empty-state"><div class="glyph">📋</div><div class="t">Nenhum lançamento encontrado</div>Ajuste os filtros ou registre um novo lançamento.</div>`}
     </div>
   `;
@@ -1266,16 +1413,18 @@ function classificacoesView(){
         <div class="cat-list">
           ${state.categoriasReceita.map(c=>catItem(c,"receita")).join("") || `<div class="empty-state">Nenhuma classificação</div>`}
         </div>
+        ${podeEditar() ? `
         <div class="cat-add">
           <input type="text" id="novaCatReceita" placeholder="Nova classificação de receita…" />
           <button class="btn primary receita" data-addcat="receita">Adicionar</button>
-        </div>
+        </div>` : ""}
       </div>
       <div class="panel">
         <div class="panel-head"><h2>Classificações de Despesa</h2><span class="hint">${state.categoriasDespesa.length} cadastrada(s)</span></div>
         <div class="cat-list">
           ${state.categoriasDespesa.map(c=>catItem(c,"despesa")).join("") || `<div class="empty-state">Nenhuma classificação</div>`}
         </div>
+        ${podeEditar() ? `
         <div class="cat-add">
           <input type="text" id="novaCatDespesa" placeholder="Nova classificação de despesa…" />
           <select class="grupo-select" id="novaCatDespesaGrupo">
@@ -1283,7 +1432,7 @@ function classificacoesView(){
           </select>
           <button class="btn primary despesa" data-addcat="despesa">Adicionar</button>
         </div>
-        <div class="dre-note">O grupo define em qual linha da DRE essa despesa será somada.</div>
+        <div class="dre-note">O grupo define em qual linha da DRE essa despesa será somada.</div>` : ""}
       </div>
     </div>
   `;
@@ -1294,7 +1443,7 @@ function catItem(c, tipo){
   return `
     <div class="cat-item">
       <div class="name"><span class="tag ${tipo}"><span class="bar"></span></span>${c.nome} ${grupoTag}</div>
-      <button class="icon-btn danger" data-delcat="${tipo}:${c.id}" title="Remover">${ICONS.trash}</button>
+      ${podeEditar() ? `<button class="icon-btn danger" data-delcat="${tipo}:${c.id}" title="Remover">${ICONS.trash}</button>` : ""}
     </div>
   `;
 }
@@ -1310,32 +1459,45 @@ function pagamentosView(){
         <div class="cat-list">
           ${state.bancos.map(b=>pagItem(b,"banco")).join("") || `<div class="empty-state">Nenhum banco cadastrado</div>`}
         </div>
+        ${podeEditar() ? `
         <div class="cat-add">
           <input type="text" id="novoBanco" placeholder="Nome do banco…" />
           <button class="btn primary neutral" data-addpag="banco">Adicionar</button>
-        </div>
+        </div>` : ""}
       </div>
       <div class="panel">
         <div class="panel-head"><h2>Tipos de Transação</h2><span class="hint">${state.tiposTransacao.length} cadastrado(s)</span></div>
         <div class="cat-list">
           ${state.tiposTransacao.map(t=>pagItem(t,"tipo")).join("") || `<div class="empty-state">Nenhum tipo cadastrado</div>`}
         </div>
+        ${podeEditar() ? `
         <div class="cat-add">
           <input type="text" id="novoTipoTransacao" placeholder="Ex: Pix, TED, Cheque…" />
           <button class="btn primary neutral" data-addpag="tipo">Adicionar</button>
-        </div>
+        </div>` : ""}
       </div>
     </div>
 
-    ${contaBancariaForm(editingContaId ? state.contasBancarias.find(c=>c.id===editingContaId) : null)}
+    ${podeEditar() ? contaBancariaForm(editingContaId ? state.contasBancarias.find(c=>c.id===editingContaId) : null) : ""}
 
     <div class="panel">
       <div class="panel-head"><h2>Contas Bancárias cadastradas</h2><span class="hint">${state.contasBancarias.length} conta(s)</span></div>
-      ${state.contasBancarias.length ? `
+      ${state.contasBancarias.length ? `<input type="text" id="buscaContasInput" class="search-input" placeholder="Buscar por banco, agência, conta ou titular…" value="${buscaContas}" />` : ""}
+      ${(() => {
+        const q = buscaContas.trim().toLowerCase();
+        const filtradas = !q ? state.contasBancarias : state.contasBancarias.filter(c=>
+          (bancoNomeById(c.bancoId)||"").toLowerCase().includes(q) ||
+          (c.agencia||"").toLowerCase().includes(q) ||
+          (c.numero||"").toLowerCase().includes(q) ||
+          (c.titular||"").toLowerCase().includes(q) ||
+          (c.tipoConta||"").toLowerCase().includes(q)
+        );
+        if(!filtradas.length) return `<div class="empty-state"><div class="glyph">🏦</div><div class="t">${state.contasBancarias.length ? "Nenhuma conta encontrada" : "Nenhuma conta bancária cadastrada"}</div>${state.contasBancarias.length ? "Ajuste os termos da busca." : "Cadastre acima as contas usadas pela NFF."}</div>`;
+        return `
       <table>
         <thead><tr><th>Banco</th><th>Agência</th><th>Conta</th><th>Tipo</th><th>Titular</th><th></th></tr></thead>
         <tbody>
-          ${state.contasBancarias.map(c=>`
+          ${filtradas.map(c=>`
             <tr>
               <td>${bancoNomeById(c.bancoId) || "—"}</td>
               <td class="mono">${c.agencia||"—"}</td>
@@ -1343,15 +1505,17 @@ function pagamentosView(){
               <td><span class="role-pill">${c.tipoConta}</span></td>
               <td>${c.titular||"—"}</td>
               <td>
+                ${podeEditar() ? `
                 <div class="row-actions">
                   <button class="icon-btn" data-editconta="${c.id}" title="Editar">${ICONS.edit}</button>
                   <button class="icon-btn danger" data-delconta="${c.id}" title="Remover">${ICONS.trash}</button>
-                </div>
+                </div>` : ""}
               </td>
             </tr>
           `).join("")}
         </tbody>
-      </table>` : `<div class="empty-state"><div class="glyph">🏦</div><div class="t">Nenhuma conta bancária cadastrada</div>Cadastre acima as contas usadas pela NFF.</div>`}
+      </table>`;
+      })()}
     </div>
   `;
 }
@@ -1404,7 +1568,7 @@ function pagItem(item, kind){
   return `
     <div class="cat-item">
       <div class="name">${ICONS.banco.replace('class="ic"','width="15" height="15" style="opacity:.55"')} ${item.nome}</div>
-      <button class="icon-btn danger" data-delpag="${kind}:${item.id}" title="Remover">${ICONS.trash}</button>
+      ${podeEditar() ? `<button class="icon-btn danger" data-delpag="${kind}:${item.id}" title="Remover">${ICONS.trash}</button>` : ""}
     </div>
   `;
 }
@@ -1552,18 +1716,31 @@ function clienteForm(existing){
 
 function clientesView(){
   if(editingClienteId){
-    const c = state.clientes.find(x=>x.id===editingClienteId);
-    if(c) return clienteForm(c);
+    if(!podeEditar()) editingClienteId = null;
+    else {
+      const c = state.clientes.find(x=>x.id===editingClienteId);
+      if(c) return clienteForm(c);
+    }
   }
   return `
-    ${clienteForm(null)}
+    ${podeEditar() ? clienteForm(null) : ""}
     <div class="panel">
       <div class="panel-head"><h2>Clientes cadastrados</h2><span class="hint">${state.clientes.length} cliente(s)</span></div>
-      ${state.clientes.length ? `
+      ${state.clientes.length ? `<input type="text" id="buscaClientesInput" class="search-input" placeholder="Buscar por nome, documento, telefone ou e-mail…" value="${buscaClientes}" />` : ""}
+      ${(() => {
+        const q = buscaClientes.trim().toLowerCase();
+        const filtrados = !q ? state.clientes : state.clientes.filter(c=>
+          (c.nome||"").toLowerCase().includes(q) ||
+          (c.documento||"").toLowerCase().includes(q) ||
+          (c.telefone||"").toLowerCase().includes(q) ||
+          (c.email||"").toLowerCase().includes(q)
+        );
+        if(!filtrados.length) return `<div class="empty-state"><div class="glyph">🧾</div><div class="t">${state.clientes.length ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado"}</div>${state.clientes.length ? "Ajuste os termos da busca." : "Cadastre acima os clientes atendidos pela NFF."}</div>`;
+        return `
       <table>
         <thead><tr><th>Cliente</th><th>Tipo</th><th>Documento</th><th>Contato</th><th></th></tr></thead>
         <tbody>
-          ${state.clientes.map(c=>`
+          ${filtrados.map(c=>`
             <tr>
               <td>
                 <div class="user-row">
@@ -1575,15 +1752,119 @@ function clientesView(){
               <td class="mono">${formatDocumento(c.tipoPessoa, c.documento)}</td>
               <td>${c.telefone||""}${c.telefone&&c.email?"<br>":""}${c.email||""}</td>
               <td>
+                ${podeEditar() ? `
                 <div class="row-actions">
                   <button class="icon-btn" data-editcliente="${c.id}" title="Editar">${ICONS.edit}</button>
                   <button class="icon-btn danger" data-delcliente="${c.id}" title="Remover">${ICONS.trash}</button>
-                </div>
+                </div>` : ""}
               </td>
             </tr>
           `).join("")}
         </tbody>
-      </table>` : `<div class="empty-state"><div class="glyph">🧾</div><div class="t">Nenhum cliente cadastrado</div>Cadastre acima os clientes atendidos pela NFF.</div>`}
+      </table>`;
+      })()}
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------
+   FORNECEDORES
+--------------------------------------------------------- */
+function fornecedorForm(existing){
+  const f = existing || { tipoPessoa:"juridica", nome:"", documento:"", telefone:"", email:"", endereco:"", obs:"" };
+  return `
+    <div class="panel" style="max-width:700px;">
+      <div class="panel-head"><h2>${existing ? "Editar fornecedor" : "Novo fornecedor"}</h2></div>
+      <form id="fornecedorForm" class="form-grid">
+        <div class="field">
+          <label>Tipo de pessoa</label>
+          <select name="tipoPessoa" id="fornecedorTipoPessoa">
+            <option value="fisica" ${f.tipoPessoa==="fisica"?"selected":""}>Pessoa Física</option>
+            <option value="juridica" ${f.tipoPessoa==="juridica"?"selected":""}>Pessoa Jurídica</option>
+          </select>
+        </div>
+        <div class="field">
+          <label id="fornecedorDocLabel">${f.tipoPessoa==="juridica"?"CNPJ":"CPF"}</label>
+          <input type="text" name="documento" id="fornecedorDocumento" placeholder="${f.tipoPessoa==="juridica"?"00.000.000/0000-00":"000.000.000-00"}" value="${f.documento||""}" required />
+        </div>
+        <div class="field full">
+          <label id="fornecedorNomeLabel">${f.tipoPessoa==="juridica"?"Razão Social":"Nome completo"}</label>
+          <input type="text" name="nome" id="fornecedorNome" placeholder="Nome do fornecedor" value="${f.nome}" required />
+        </div>
+        <div class="field">
+          <label>Telefone</label>
+          <input type="text" name="telefone" placeholder="(00) 00000-0000" value="${f.telefone||""}" />
+        </div>
+        <div class="field">
+          <label>E-mail</label>
+          <input type="email" name="email" placeholder="fornecedor@email.com" value="${f.email||""}" />
+        </div>
+        <div class="field full">
+          <label>Endereço</label>
+          <input type="text" name="endereco" placeholder="Rua, número, bairro, cidade" value="${f.endereco||""}" />
+        </div>
+        <div class="field full">
+          <label>Observações</label>
+          <textarea name="obs" placeholder="Opcional">${f.obs||""}</textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn primary neutral">${existing ? "Salvar alterações" : "Cadastrar fornecedor"}</button>
+          ${existing ? `<button type="button" class="btn ghost" data-nav="fornecedores">Cancelar</button>` : ""}
+        </div>
+      </form>
+    </div>
+  `;
+}
+
+function fornecedoresView(){
+  if(editingFornecedorId){
+    if(!podeEditar()) editingFornecedorId = null;
+    else {
+      const f = state.fornecedores.find(x=>x.id===editingFornecedorId);
+      if(f) return fornecedorForm(f);
+    }
+  }
+  return `
+    ${podeEditar() ? fornecedorForm(null) : ""}
+    <div class="panel">
+      <div class="panel-head"><h2>Fornecedores cadastrados</h2><span class="hint">${state.fornecedores.length} fornecedor(es)</span></div>
+      ${state.fornecedores.length ? `<input type="text" id="buscaFornecedoresInput" class="search-input" placeholder="Buscar por nome, documento, telefone ou e-mail…" value="${buscaFornecedores}" />` : ""}
+      ${(() => {
+        const q = buscaFornecedores.trim().toLowerCase();
+        const filtrados = !q ? state.fornecedores : state.fornecedores.filter(f=>
+          (f.nome||"").toLowerCase().includes(q) ||
+          (f.documento||"").toLowerCase().includes(q) ||
+          (f.telefone||"").toLowerCase().includes(q) ||
+          (f.email||"").toLowerCase().includes(q)
+        );
+        if(!filtrados.length) return `<div class="empty-state"><div class="glyph">🚚</div><div class="t">${state.fornecedores.length ? "Nenhum fornecedor encontrado" : "Nenhum fornecedor cadastrado"}</div>${state.fornecedores.length ? "Ajuste os termos da busca." : "Cadastre acima os fornecedores da NFF."}</div>`;
+        return `
+      <table>
+        <thead><tr><th>Fornecedor</th><th>Tipo</th><th>Documento</th><th>Contato</th><th></th></tr></thead>
+        <tbody>
+          ${filtrados.map(f=>`
+            <tr>
+              <td>
+                <div class="user-row">
+                  <div class="avatar">${initials(f.nome)}</div>
+                  <div class="user-meta"><div class="nm">${f.nome}</div>${f.endereco?`<div class="em">${f.endereco}</div>`:""}</div>
+                </div>
+              </td>
+              <td><span class="role-pill">${f.tipoPessoa==="juridica"?"Jurídica":"Física"}</span></td>
+              <td class="mono">${formatDocumento(f.tipoPessoa, f.documento)}</td>
+              <td>${f.telefone||""}${f.telefone&&f.email?"<br>":""}${f.email||""}</td>
+              <td>
+                ${podeEditar() ? `
+                <div class="row-actions">
+                  <button class="icon-btn" data-editfornecedor="${f.id}" title="Editar">${ICONS.edit}</button>
+                  <button class="icon-btn danger" data-delfornecedor="${f.id}" title="Remover">${ICONS.trash}</button>
+                </div>` : ""}
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>`;
+      })()}
     </div>
   `;
 }
@@ -1922,6 +2203,11 @@ function attachHandlers(){
     }
   });
 
+  const btnMobileMenu = document.getElementById("btnMobileMenu");
+  if(btnMobileMenu) btnMobileMenu.addEventListener("click", ()=>{ mobileNavOpen = !mobileNavOpen; render(); });
+  const mobileOverlay = document.getElementById("mobileOverlay");
+  if(mobileOverlay) mobileOverlay.addEventListener("click", ()=>{ mobileNavOpen = false; render(); });
+
   const sel = document.getElementById("dashPeriodSel");
   if(sel) sel.addEventListener("change", e=>{ dashPeriod = e.target.value; render(); });
   const relSel = document.getElementById("relPeriodSel");
@@ -2144,9 +2430,8 @@ function importSpreadsheet(file){
         const preview = result.errors.slice(0,12).join("\n") + (result.errors.length>12 ? `\n...e mais ${result.errors.length-12} linha(s).` : "");
         alert(`Importação concluída.\n\n${result.added} lançamento(s) adicionados com sucesso.\n${result.errors.length} linha(s) não puderam ser importadas:\n\n${preview}`);
       } else {
-        banner = `${result.added} lançamento(s) importados com sucesso da planilha.`;
+        mostrarBanner(`${result.added} lançamento(s) importados com sucesso da planilha.`);
         render();
-        setTimeout(()=>{ banner=null; }, 4500);
       }
     }catch(err){
       alert("Não foi possível ler esta planilha. Verifique se o arquivo não está corrompido, protegido por senha, ou tente exportá-lo novamente em formato .xlsx.");
@@ -2163,6 +2448,18 @@ function importSpreadsheet(file){
   const fBusca = document.getElementById("fBusca");
   if(fBusca){
     fBusca.addEventListener("input", e=>{ filters.busca = e.target.value; render(); preserveFocus("fBusca"); });
+  }
+  const buscaClientesInput = document.getElementById("buscaClientesInput");
+  if(buscaClientesInput){
+    buscaClientesInput.addEventListener("input", e=>{ buscaClientes = e.target.value; render(); preserveFocus("buscaClientesInput"); });
+  }
+  const buscaFornecedoresInput = document.getElementById("buscaFornecedoresInput");
+  if(buscaFornecedoresInput){
+    buscaFornecedoresInput.addEventListener("input", e=>{ buscaFornecedores = e.target.value; render(); preserveFocus("buscaFornecedoresInput"); });
+  }
+  const buscaContasInput = document.getElementById("buscaContasInput");
+  if(buscaContasInput){
+    buscaContasInput.addEventListener("input", e=>{ buscaContas = e.target.value; render(); preserveFocus("buscaContasInput"); });
   }
 
   const form = document.getElementById("lancForm");
@@ -2189,15 +2486,14 @@ function importSpreadsheet(file){
         const idx = state.lancamentos.findIndex(l=>l.id===editingId);
         state.lancamentos[idx] = payload;
         editingId = null;
-        banner = null;
         await saveState();
+        mostrarBanner("Lançamento atualizado com sucesso.");
         setView("lancamentos");
       } else {
         state.lancamentos.push(payload);
         await saveState();
-        banner = `${tipo==="receita"?"Receita":"Despesa"} registrada com sucesso.`;
+        mostrarBanner(`${tipo==="receita"?"Receita":"Despesa"} registrada com sucesso.`);
         render();
-        setTimeout(()=>{ banner=null; }, 3500);
       }
     });
   }
@@ -2234,11 +2530,15 @@ function importSpreadsheet(file){
         const idx = state.usuarios.findIndex(u=>u.id===editingUserId);
         state.usuarios[idx] = payload;
         editingUserId = null;
+        await saveState();
+        mostrarBanner("Usuário atualizado com sucesso.");
+        render();
       } else {
         state.usuarios.push(payload);
+        await saveState();
+        mostrarBanner("Usuário cadastrado com sucesso.");
+        render();
       }
-      await saveState();
-      render();
     });
   }
   document.querySelectorAll("[data-edituser]").forEach(el=>{
@@ -2293,11 +2593,15 @@ function importSpreadsheet(file){
         const idx = state.clientes.findIndex(c=>c.id===editingClienteId);
         state.clientes[idx] = payload;
         editingClienteId = null;
+        await saveState();
+        mostrarBanner("Cliente atualizado com sucesso.");
+        render();
       } else {
         state.clientes.push(payload);
+        await saveState();
+        mostrarBanner("Cliente cadastrado com sucesso.");
+        render();
       }
-      await saveState();
-      render();
     });
   }
   document.querySelectorAll("[data-editcliente]").forEach(el=>{
@@ -2308,6 +2612,69 @@ function importSpreadsheet(file){
       const id = el.getAttribute("data-delcliente");
       if(confirm("Remover este cliente?")){
         state.clientes = state.clientes.filter(c=>c.id!==id);
+        await saveState();
+        render();
+      }
+    });
+  });
+
+  const fornecedorTipoPessoa = document.getElementById("fornecedorTipoPessoa");
+  if(fornecedorTipoPessoa){
+    fornecedorTipoPessoa.addEventListener("change", e=>{
+      const juridica = e.target.value === "juridica";
+      const docLabel = document.getElementById("fornecedorDocLabel");
+      const docInput = document.getElementById("fornecedorDocumento");
+      const nomeLabel = document.getElementById("fornecedorNomeLabel");
+      if(docLabel) docLabel.textContent = juridica ? "CNPJ" : "CPF";
+      if(docInput) docInput.placeholder = juridica ? "00.000.000/0000-00" : "000.000.000-00";
+      if(nomeLabel) nomeLabel.textContent = juridica ? "Razão Social" : "Nome completo";
+    });
+  }
+
+  const fornecedorFormEl = document.getElementById("fornecedorForm");
+  if(fornecedorFormEl){
+    fornecedorFormEl.addEventListener("submit", async e=>{
+      e.preventDefault();
+      const fd = new FormData(fornecedorFormEl);
+      const documento = String(fd.get("documento")||"").trim();
+      const tipoPessoa = fd.get("tipoPessoa");
+      const digitos = documento.replace(/\D/g,"");
+      if((tipoPessoa==="fisica" && digitos.length!==11) || (tipoPessoa==="juridica" && digitos.length!==14)){
+        if(!confirm(`O ${tipoPessoa==="juridica"?"CNPJ":"CPF"} informado não tem a quantidade de dígitos esperada. Deseja salvar mesmo assim?`)) return;
+      }
+      const payload = {
+        id: editingFornecedorId || uid(),
+        tipoPessoa,
+        nome: fd.get("nome"),
+        documento,
+        telefone: fd.get("telefone"),
+        email: fd.get("email"),
+        endereco: fd.get("endereco"),
+        obs: fd.get("obs"),
+      };
+      if(editingFornecedorId){
+        const idx = state.fornecedores.findIndex(f=>f.id===editingFornecedorId);
+        state.fornecedores[idx] = payload;
+        editingFornecedorId = null;
+        await saveState();
+        mostrarBanner("Fornecedor atualizado com sucesso.");
+        render();
+      } else {
+        state.fornecedores.push(payload);
+        await saveState();
+        mostrarBanner("Fornecedor cadastrado com sucesso.");
+        render();
+      }
+    });
+  }
+  document.querySelectorAll("[data-editfornecedor]").forEach(el=>{
+    el.addEventListener("click", ()=>{ editingFornecedorId = el.getAttribute("data-editfornecedor"); render(); });
+  });
+  document.querySelectorAll("[data-delfornecedor]").forEach(el=>{
+    el.addEventListener("click", async ()=>{
+      const id = el.getAttribute("data-delfornecedor");
+      if(confirm("Remover este fornecedor?")){
+        state.fornecedores = state.fornecedores.filter(f=>f.id!==id);
         await saveState();
         render();
       }
@@ -2389,11 +2756,15 @@ function importSpreadsheet(file){
         const idx = state.contasBancarias.findIndex(c=>c.id===editingContaId);
         state.contasBancarias[idx] = payload;
         editingContaId = null;
+        await saveState();
+        mostrarBanner("Conta bancária atualizada com sucesso.");
+        render();
       } else {
         state.contasBancarias.push(payload);
+        await saveState();
+        mostrarBanner("Conta bancária cadastrada com sucesso.");
+        render();
       }
-      await saveState();
-      render();
     });
   }
   document.querySelectorAll("[data-editconta]").forEach(el=>{
@@ -2441,7 +2812,7 @@ function preserveFocus(id){
 /* ---------------------------------------------------------
    INIT
 --------------------------------------------------------- */
-iniciarAutenticacao();
+if(!FIREBASE_READY) iniciarAutenticacao();
 </script>
 </body>
 </html>
