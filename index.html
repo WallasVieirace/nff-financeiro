@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root{
     --navy-950:#0d1626;
@@ -281,6 +282,32 @@
   }
   .setup-card .note{ font-size:12.5px; color:var(--ink-soft); line-height:1.6; background:var(--paper); padding:12px 14px; border-radius:9px; }
 
+  /* autenticação */
+  .auth-screen{
+    min-height:100vh; width:100%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg, var(--navy-900), var(--navy-950)); padding:20px;
+  }
+  .auth-loading{ color:rgba(255,255,255,.6); font-size:13px; }
+  .auth-card{
+    width:100%; max-width:380px; background:#fff; border-radius:18px; padding:38px 34px;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,.5); text-align:center;
+  }
+  .auth-logo{ width:120px; margin:0 auto 22px; display:block; }
+  .auth-card h1{ font-family:'Sora',sans-serif; font-size:19px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+  .auth-card .auth-sub{ font-size:12.5px; color:var(--ink-soft); margin-bottom:22px; line-height:1.5; }
+  .auth-card form{ text-align:left; }
+  .auth-card .banner{ text-align:left; margin-bottom:16px; }
+  .auth-link{
+    all:unset; cursor:pointer; display:inline-block; margin-top:18px; font-size:12.5px; font-weight:600;
+    color:var(--navy-700); text-decoration:underline; text-underline-offset:2px;
+  }
+  .auth-link:hover{ color:var(--navy-900); }
+
+  .logged-user{ display:flex; align-items:center; gap:9px; padding-bottom:12px; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,.1); }
+  .logged-user .lu-email{ font-size:11.5px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:150px; }
+  .logged-user .auth-link{ color:rgba(255,255,255,.5); margin-top:2px; font-size:11px; }
+  .logged-user .auth-link:hover{ color:#fff; }
+
   /* classificacoes */
   .cat-cols{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
   .cat-list{ display:flex; flex-direction:column; gap:8px; margin-top:12px; }
@@ -439,14 +466,58 @@ const FIREBASE_READY = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "
 
 let db = null;
 let docRef = null;
+let auth = null;
 if(FIREBASE_READY){
   try{
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.firestore();
     docRef = db.collection("nff_financeiro").doc("estado");
+    auth = firebase.auth();
   }catch(e){
     console.error("Falha ao iniciar Firebase:", e);
   }
+}
+
+/* ---------------------------------------------------------
+   AUTENTICAÇÃO
+--------------------------------------------------------- */
+let authReady = false;
+let authUser = null;
+let authView = "login"; // login | esqueci
+let authError = null;
+let authMsg = null;
+let authBusy = false;
+
+function iniciarAutenticacao(){
+  if(!FIREBASE_READY || !auth){ authReady = true; render(); return; }
+  auth.onAuthStateChanged(user=>{
+    authUser = user;
+    authReady = true;
+    authView = "login";
+    authError = null;
+    authMsg = null;
+    if(user){
+      loadState();
+    } else {
+      ready = false;
+      render();
+    }
+    render();
+  });
+}
+
+function traduzErroAuth(code){
+  const mapa = {
+    "auth/invalid-email": "E-mail inválido.",
+    "auth/user-disabled": "Este usuário foi desativado.",
+    "auth/user-not-found": "E-mail ou senha incorretos.",
+    "auth/wrong-password": "E-mail ou senha incorretos.",
+    "auth/invalid-credential": "E-mail ou senha incorretos.",
+    "auth/missing-password": "Informe a senha.",
+    "auth/too-many-requests": "Muitas tentativas. Aguarde um momento e tente novamente.",
+    "auth/network-request-failed": "Falha de conexão. Verifique sua internet.",
+  };
+  return mapa[code] || "Não foi possível concluir. Tente novamente.";
 }
 
 /* ---------------------------------------------------------
@@ -615,6 +686,13 @@ function bancoNomeById(id){
   const b = (state.bancos||[]).find(b=>b.id===id);
   return b ? b.nome : "";
 }
+function contaLabel(id){
+  const c = (state.contasBancarias||[]).find(c=>c.id===id);
+  if(!c) return "";
+  const banco = bancoNomeById(c.bancoId);
+  const partes = [banco, c.agencia?`Ag ${c.agencia}`:"", c.numero?`Cc ${c.numero}`:"", c.tipoConta].filter(Boolean);
+  return partes.join(" · ");
+}
 
 /* ---------------------------------------------------------
    NAVEGAÇÃO / ESTADO DA UI
@@ -659,6 +737,17 @@ function render(){
     return;
   }
 
+  if(!authReady){
+    root.innerHTML = `<div class="auth-screen"><div class="auth-loading">Carregando…</div></div>`;
+    return;
+  }
+
+  if(!authUser){
+    root.innerHTML = authView === "esqueci" ? forgotPasswordScreen() : loginScreen();
+    attachAuthHandlers();
+    return;
+  }
+
   root.innerHTML = `
     <div class="sidebar">
       <div class="sidebar-logo">
@@ -681,6 +770,13 @@ function render(){
         ${navBtn("usuarios","usuarios","Usuários")}
       </div>
       <div class="sidebar-foot">
+        <div class="logged-user">
+          <div class="avatar" style="width:26px;height:26px;font-size:11px;">${initials(authUser.email||"?")}</div>
+          <div style="min-width:0;">
+            <div class="lu-email" title="${authUser.email||''}">${authUser.email||"Usuário"}</div>
+            <button id="btnLogout" class="auth-link" style="padding:0; margin:0;">Sair</button>
+          </div>
+        </div>
         <div class="sync-status">
           <span class="sync-dot ${syncError?'err':''}"></span>
           ${syncError ? "Sem sincronização" : (savingNow ? "Salvando…" : "Sincronizado")}
@@ -727,17 +823,119 @@ function setupScreen(){
 service cloud.firestore {
   match /databases/{database}/documents {
     match /nff_financeiro/{docId} {
-      allow read, write: if true;
+      allow read, write: if request.auth != null;
     }
   }
 }</pre>
         <p class="note">
-          Essa regra permite que qualquer pessoa com o link acesse e atualize os dados, sem precisar de login —
-          exatamente como solicitado. Depois de salvar o arquivo com sua configuração, recarregue esta página.
+          Essa regra permite que qualquer pessoa <strong>autenticada</strong> (logada) acesse e atualize os dados.
+          Para criar os logins, vá em <strong>Authentication</strong> no menu do Firebase → aba <strong>Sign-in method</strong> →
+          ative <strong>E-mail/senha</strong> → depois, na aba <strong>Users</strong>, clique em <strong>Add user</strong> e
+          cadastre o e-mail e senha de cada pessoa que poderá acessar o sistema. Depois de salvar o arquivo com sua
+          configuração, recarregue esta página.
         </p>
       </div>
     </div>
   `;
+}
+
+function loginScreen(){
+  return `
+    <div class="auth-screen">
+      <div class="auth-card">
+        <img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA" class="auth-logo" />
+        <h1>Entrar no sistema</h1>
+        <p class="auth-sub">Painel Financeiro — NFF Serviços LTDA</p>
+        ${authError ? `<div class="banner err-banner">${authError}</div>` : ""}
+        <form id="loginForm">
+          <div class="field">
+            <label>E-mail</label>
+            <input type="email" name="email" placeholder="seuemail@nff.com.br" required autocomplete="username" />
+          </div>
+          <div class="field" style="margin-top:14px;">
+            <label>Senha</label>
+            <input type="password" name="senha" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="btn primary neutral" style="width:100%; margin-top:20px;" ${authBusy?"disabled":""}>
+            ${authBusy ? "Entrando…" : "Entrar"}
+          </button>
+        </form>
+        <button type="button" class="auth-link" id="btnEsqueciSenha">Esqueci minha senha</button>
+      </div>
+    </div>
+  `;
+}
+
+function forgotPasswordScreen(){
+  return `
+    <div class="auth-screen">
+      <div class="auth-card">
+        <img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA" class="auth-logo" />
+        <h1>Redefinir senha</h1>
+        <p class="auth-sub">Informe seu e-mail de acesso — vamos enviar um link para você criar uma nova senha.</p>
+        ${authError ? `<div class="banner err-banner">${authError}</div>` : ""}
+        ${authMsg ? `<div class="banner ok">${authMsg}</div>` : ""}
+        <form id="forgotForm">
+          <div class="field">
+            <label>E-mail</label>
+            <input type="email" name="email" placeholder="seuemail@nff.com.br" required autocomplete="username" />
+          </div>
+          <button type="submit" class="btn primary neutral" style="width:100%; margin-top:20px;" ${authBusy?"disabled":""}>
+            ${authBusy ? "Enviando…" : "Enviar link de redefinição"}
+          </button>
+        </form>
+        <button type="button" class="auth-link" id="btnVoltarLogin">Voltar para login</button>
+      </div>
+    </div>
+  `;
+}
+
+function attachAuthHandlers(){
+  const loginForm = document.getElementById("loginForm");
+  if(loginForm){
+    loginForm.addEventListener("submit", async e=>{
+      e.preventDefault();
+      const fd = new FormData(loginForm);
+      const email = String(fd.get("email")||"").trim();
+      const senha = String(fd.get("senha")||"");
+      authBusy = true; authError = null; render();
+      try{
+        await auth.signInWithEmailAndPassword(email, senha);
+        // onAuthStateChanged cuida do resto
+      }catch(err){
+        authBusy = false;
+        authError = traduzErroAuth(err.code);
+        render();
+      }
+    });
+  }
+  const btnEsqueciSenha = document.getElementById("btnEsqueciSenha");
+  if(btnEsqueciSenha) btnEsqueciSenha.addEventListener("click", ()=>{
+    authView = "esqueci"; authError = null; authMsg = null; render();
+  });
+  const btnVoltarLogin = document.getElementById("btnVoltarLogin");
+  if(btnVoltarLogin) btnVoltarLogin.addEventListener("click", ()=>{
+    authView = "login"; authError = null; authMsg = null; render();
+  });
+  const forgotForm = document.getElementById("forgotForm");
+  if(forgotForm){
+    forgotForm.addEventListener("submit", async e=>{
+      e.preventDefault();
+      const fd = new FormData(forgotForm);
+      const email = String(fd.get("email")||"").trim();
+      authBusy = true; authError = null; authMsg = null; render();
+      try{
+        await auth.sendPasswordResetEmail(email);
+        authBusy = false;
+        authMsg = "Link de redefinição enviado! Confira sua caixa de entrada (e o spam).";
+        render();
+      }catch(err){
+        authBusy = false;
+        authError = traduzErroAuth(err.code);
+        render();
+      }
+    });
+  }
 }
 
 function navBtn(view, icon, label){
@@ -920,7 +1118,7 @@ let editingId = null;
 
 function lancamentoForm(tipo, existing){
   const cats = tipo === "receita" ? state.categoriasReceita : state.categoriasDespesa;
-  const l = existing || { data: todayISO(), descricao:"", categoriaId: cats[0]?.id || "", valor:"", parte:"", bancoId: state.bancos[0]?.id || "", tipoTransacaoId: state.tiposTransacao[0]?.id || "", status:"Pago", obs:"" };
+  const l = existing || { data: todayISO(), descricao:"", categoriaId: cats[0]?.id || "", valor:"", parte:"", bancoId: state.bancos[0]?.id || "", contaId: "", tipoTransacaoId: state.tiposTransacao[0]?.id || "", status:"Pago", obs:"" };
   const partLabel = tipo === "receita" ? "Cliente" : "Fornecedor";
 
   return `
@@ -958,6 +1156,13 @@ function lancamentoForm(tipo, existing){
           <select name="bancoId">
             ${state.bancos.length ? state.bancos.map(b=>`<option value="${b.id}" ${l.bancoId===b.id?"selected":""}>${b.nome}</option>`).join("")
               : `<option value="">Cadastre um banco em Cadastros → Bancos e Pagamentos</option>`}
+          </select>
+        </div>
+        <div class="field">
+          <label>Conta bancária</label>
+          <select name="contaId">
+            <option value="">— Não informar —</option>
+            ${state.contasBancarias.map(c=>`<option value="${c.id}" ${l.contaId===c.id?"selected":""}>${contaLabel(c.id)}</option>`).join("")}
           </select>
         </div>
         <div class="field">
@@ -1030,7 +1235,7 @@ function lancamentosView(){
               <td class="mono">${fmtDate(l.data)}</td>
               <td>${l.descricao||"—"}${l.parte?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${l.parte}</div>`:""}</td>
               <td>${catName(l.tipo,l.categoriaId)}</td>
-              <td>${bancoName(l.bancoId)}${l.tipoTransacaoId?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${tipoTransacaoName(l.tipoTransacaoId)}</div>`:""}</td>
+              <td>${bancoName(l.bancoId)}${l.tipoTransacaoId?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${tipoTransacaoName(l.tipoTransacaoId)}</div>`:""}${l.contaId?`<div style="font-size:11px;color:var(--ink-soft);">${contaLabel(l.contaId)}</div>`:""}</td>
               <td><span class="tag ${l.tipo}"><span class="bar"></span>${l.tipo==="receita"?"Receita":"Despesa"}</span></td>
               <td>${l.status||"—"}</td>
               <td class="mono" style="text-align:right; color:${l.tipo==="receita"?"var(--green)":"var(--red)"}">
@@ -1391,6 +1596,9 @@ const TIPOS_RELATORIO = [
   {id:"receitas", label:"Receitas por Classificação"},
   {id:"despesas", label:"Despesas por Classificação"},
   {id:"fluxo", label:"Fluxo de Caixa Mensal"},
+  {id:"banco", label:"Valor por Banco"},
+  {id:"conta", label:"Valor por Conta Bancária"},
+  {id:"cliente", label:"Valor por Cliente"},
 ];
 
 function relatoriosView(){
@@ -1418,6 +1626,9 @@ function relatoriosView(){
       ${reportType === "receitas" ? catReport("receita") : ""}
       ${reportType === "despesas" ? catReport("despesa") : ""}
       ${reportType === "fluxo" ? fluxoCaixaReport() : ""}
+      ${reportType === "banco" ? porBancoReport() : ""}
+      ${reportType === "conta" ? porContaReport() : ""}
+      ${reportType === "cliente" ? porClienteReport() : ""}
     </div>
   `;
 }
@@ -1581,6 +1792,108 @@ function fluxoCaixaReport(){
   `;
 }
 
+function agruparReceitaDespesa(lancs, keyFn, labelFn){
+  const map = {};
+  lancs.forEach(l=>{
+    const key = keyFn(l) || "__vazio__";
+    if(!map[key]) map[key] = { label: labelFn(key, l), receita:0, despesa:0 };
+    if(l.tipo === "receita") map[key].receita += Number(l.valor);
+    else map[key].despesa += Number(l.valor);
+  });
+  return Object.values(map)
+    .map(v=>Object.assign({}, v, { saldo: v.receita - v.despesa }))
+    .sort((a,b)=> (b.receita+b.despesa) - (a.receita+a.despesa));
+}
+
+function tabelaReceitaDespesaPorGrupo(titulo, hint, linhas, emptyMsg){
+  return `
+    <div class="panel">
+      <div class="panel-head"><h2>${titulo}</h2><span class="hint">${hint}</span></div>
+      ${linhas.length ? `
+      <table>
+        <thead><tr><th>${titulo.replace("Valor por ","")}</th><th style="text-align:right">Receitas</th><th style="text-align:right">Despesas</th><th style="text-align:right">Saldo</th></tr></thead>
+        <tbody>
+          ${linhas.map(x=>`
+            <tr>
+              <td>${x.label}</td>
+              <td class="mono" style="text-align:right; color:var(--green)">R$ ${fmtMoney(x.receita)}</td>
+              <td class="mono" style="text-align:right; color:var(--red)">R$ ${fmtMoney(x.despesa)}</td>
+              <td class="mono" style="text-align:right; color:${x.saldo>=0?'var(--green)':'var(--red)'}">R$ ${fmtMoney(x.saldo)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>` : `<div class="empty-state"><div class="glyph">📊</div><div class="t">${emptyMsg}</div></div>`}
+    </div>
+  `;
+}
+
+function porBancoReport(){
+  const lancs = filteredByPeriod(state.lancamentos, drePeriod);
+  const linhas = agruparReceitaDespesa(
+    lancs,
+    l => l.bancoId,
+    (key) => key === "__vazio__" ? "Sem banco informado" : bancoNomeById(key)
+  );
+  return tabelaReceitaDespesaPorGrupo(
+    "Valor por Banco",
+    `${drePeriod==="all"?"todo o período":monthLabel(drePeriod)}`,
+    linhas,
+    "Sem lançamentos com banco informado neste período"
+  );
+}
+
+function porContaReport(){
+  const lancs = filteredByPeriod(state.lancamentos, drePeriod);
+  const linhas = agruparReceitaDespesa(
+    lancs,
+    l => l.contaId,
+    (key) => key === "__vazio__" ? "Sem conta informada" : (contaLabel(key) || "Conta removida")
+  );
+  return tabelaReceitaDespesaPorGrupo(
+    "Valor por Conta Bancária",
+    `${drePeriod==="all"?"todo o período":monthLabel(drePeriod)}`,
+    linhas,
+    "Sem lançamentos com conta bancária informada neste período"
+  );
+}
+
+function porClienteReport(){
+  const lancs = filteredByPeriod(state.lancamentos, drePeriod).filter(l=>l.tipo==="receita");
+  const map = {};
+  lancs.forEach(l=>{
+    const key = (l.parte||"").trim() || "__vazio__";
+    if(!map[key]) map[key] = { label: key==="__vazio__" ? "Sem cliente informado" : key, valor:0, count:0 };
+    map[key].valor += Number(l.valor);
+    map[key].count += 1;
+  });
+  const linhas = Object.values(map).sort((a,b)=>b.valor-a.valor);
+  const total = linhas.reduce((a,l)=>a+l.valor,0);
+  const max = Math.max(1, ...linhas.map(l=>l.valor));
+  return `
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Valor por Cliente</h2>
+        <span class="hint">${drePeriod==="all"?"todo o período":monthLabel(drePeriod)} · receitas · total R$ ${fmtMoney(total)}</span>
+      </div>
+      ${linhas.length ? `
+      <table>
+        <thead><tr><th>Cliente</th><th>Lançamentos</th><th style="text-align:right">Valor</th><th style="text-align:right">% do total</th><th class="dist-col" style="min-width:160px">Distribuição</th></tr></thead>
+        <tbody>
+          ${linhas.map(x=>`
+            <tr>
+              <td>${x.label}</td>
+              <td class="mono">${x.count}</td>
+              <td class="mono" style="text-align:right; color:var(--green)">R$ ${fmtMoney(x.valor)}</td>
+              <td class="mono" style="text-align:right">${total>0 ? (x.valor/total*100).toFixed(1) : "0.0"}%</td>
+              <td class="dist-col"><div class="bar-track" style="max-width:160px;"><div class="bar-fill green" style="width:${(x.valor/max*100).toFixed(1)}%"></div></div></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>` : `<div class="empty-state"><div class="glyph">🧾</div><div class="t">Sem receitas com cliente informado neste período</div></div>`}
+    </div>
+  `;
+}
+
 function catGrupoDRE(categoriaId){
   const c = state.categoriasDespesa.find(c=>c.id===categoriaId);
   return c ? (c.grupoDRE || "administrativa") : "administrativa";
@@ -1600,6 +1913,13 @@ function porCategoriaReceita(receitas){
 function attachHandlers(){
   document.querySelectorAll("[data-nav]").forEach(el=>{
     el.addEventListener("click", ()=> setView(el.getAttribute("data-nav")));
+  });
+
+  const btnLogout = document.getElementById("btnLogout");
+  if(btnLogout) btnLogout.addEventListener("click", async ()=>{
+    if(confirm("Deseja sair do sistema?")){
+      try{ await auth.signOut(); }catch(e){ console.warn(e); }
+    }
   });
 
   const sel = document.getElementById("dashPeriodSel");
@@ -1860,6 +2180,7 @@ function importSpreadsheet(file){
         valor: parseFloat(fd.get("valor")||0),
         parte: fd.get("parte"),
         bancoId: fd.get("bancoId"),
+        contaId: fd.get("contaId"),
         tipoTransacaoId: fd.get("tipoTransacaoId"),
         status: fd.get("status"),
         obs: fd.get("obs"),
@@ -2120,7 +2441,7 @@ function preserveFocus(id){
 /* ---------------------------------------------------------
    INIT
 --------------------------------------------------------- */
-loadState();
+iniciarAutenticacao();
 </script>
 </body>
 </html>
