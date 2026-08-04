@@ -147,7 +147,8 @@
   .card.acc-green::before{ background:var(--green); }
   .card.acc-red::before{ background:var(--red); }
   .card.acc-navy::before{ background:var(--navy-700); }
-  .card-top{ display:flex; align-items:flex-start; justify-content:space-between; }
+  .card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .card-top svg{ flex-shrink:0; margin-top:2px; }
   .card-icon{
     width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
@@ -572,15 +573,39 @@ function podeGerenciarUsuarios(){
   return perfilAtual() === "Administrador";
 }
 
+const ADMIN_EMAIL = "jvo.wallas@gmail.com";
+let sessaoDocId = null;
+
+function registrarAcessoInicio(){
+  if(!FIREBASE_READY || !db || !authUser) return;
+  db.collection("nff_acessos").add({
+    email: authUser.email || "desconhecido",
+    entrada: firebase.firestore.FieldValue.serverTimestamp(),
+    saida: null,
+    userAgent: navigator.userAgent || "",
+  }).then(ref=>{ sessaoDocId = ref.id; }).catch(e=>console.warn("Falha ao registrar acesso:", e));
+}
+
+function registrarAcessoFim(){
+  if(!FIREBASE_READY || !db || !sessaoDocId) return Promise.resolve();
+  const id = sessaoDocId;
+  sessaoDocId = null;
+  return db.collection("nff_acessos").doc(id).update({
+    saida: firebase.firestore.FieldValue.serverTimestamp(),
+  }).catch(e=>console.warn("Falha ao encerrar registro de acesso:", e));
+}
+
 function iniciarAutenticacao(){
   if(!FIREBASE_READY || !auth){ authReady = true; render(); return; }
   auth.onAuthStateChanged(user=>{
+    const eraLogado = !!authUser;
     authUser = user;
     authReady = true;
     authView = "login";
     authError = null;
     authMsg = null;
     if(user){
+      if(!eraLogado) registrarAcessoInicio();
       loadState();
     } else {
       ready = false;
@@ -733,6 +758,73 @@ function fmtMoney(v){
   const n = Number(v)||0;
   return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
+function ultimosNMeses(refYM, n){
+  const ref = (refYM === "all" || !refYM) ? thisMonthYM() : refYM;
+  const [y,m] = ref.split("-").map(Number);
+  const meses = [];
+  for(let i=n-1; i>=0; i--){
+    const d = new Date(y, m-1-i, 1);
+    meses.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`);
+  }
+  return meses;
+}
+function sparklineSVG(valores, cor){
+  const comDados = valores.filter(v => v !== 0).length;
+  if(comDados < 2){
+    return `<div style="font-size:9px; color:var(--ink-soft); text-align:right; line-height:1.3; max-width:60px;">Histórico insuficiente</div>`;
+  }
+  const w=52, h=26;
+  const max = Math.max(...valores);
+  const min = Math.min(...valores);
+  const range = (max-min) || 1;
+  const step = valores.length>1 ? w/(valores.length-1) : w;
+  const pontos = valores.map((v,i)=> `${(i*step).toFixed(1)},${(h-((v-min)/range)*h).toFixed(1)}`).join(" ");
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pontos}" fill="none" stroke="${cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function progressRingSVG(pct, cor){
+  const clamped = Math.max(0, Math.min(100, pct===null||!isFinite(pct) ? 0 : pct));
+  return `<svg width="40" height="40" viewBox="0 0 36 36">
+    <circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--paper-line)" stroke-width="3.5"/>
+    <circle cx="18" cy="18" r="15.5" fill="none" stroke="${cor}" stroke-width="3.5" stroke-dasharray="${clamped.toFixed(1)} 100" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+  </svg>`;
+}
+function prepararFatiasDonut(lista, max){
+  const top = lista.slice(0, max);
+  const outrosValor = lista.slice(max).reduce((a,c)=>a+c.valor,0);
+  const fatias = top.map(c=>({nome:c.nome, valor:c.valor}));
+  if(outrosValor > 0) fatias.push({nome:"Outros", valor:outrosValor});
+  return fatias;
+}
+function donutSVG(fatias, cores){
+  const total = fatias.reduce((a,f)=>a+f.valor,0);
+  let offset = 25;
+  let circulos = `<circle cx="21" cy="21" r="15.9" fill="transparent" stroke="var(--paper-line)" stroke-width="6"></circle>`;
+  fatias.forEach((f,i)=>{
+    const pct = total>0 ? (f.valor/total*100) : 0;
+    circulos += `<circle cx="21" cy="21" r="15.9" fill="transparent" stroke="${cores[i%cores.length]}" stroke-width="6" stroke-dasharray="${pct.toFixed(2)} 100" stroke-dashoffset="${offset.toFixed(2)}"></circle>`;
+    offset -= pct;
+  });
+  return `<svg width="92" height="92" viewBox="0 0 42 42">${circulos}</svg>`;
+}
+function evolucaoMensalSVG(seriesDados){
+  const w=760, h=110;
+  const n = seriesDados.length;
+  const max = Math.max(1, ...seriesDados.map(x=>Math.max(x.r,x.d)));
+  const step = n>1 ? w/(n-1) : w;
+  const ptsR = seriesDados.map((x,i)=> `${(i*step).toFixed(1)},${(h-(x.r/max*h)).toFixed(1)}`).join(" ");
+  const ptsD = seriesDados.map((x,i)=> `${(i*step).toFixed(1)},${(h-(x.d/max*h)).toFixed(1)}`).join(" ");
+  return `
+    <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <polygon points="0,${h} ${ptsR} ${w},${h}" fill="var(--green)" opacity="0.14"></polygon>
+      <polyline points="${ptsR}" fill="none" stroke="var(--green)" stroke-width="2"></polyline>
+      <polygon points="0,${h} ${ptsD} ${w},${h}" fill="var(--red)" opacity="0.12"></polygon>
+      <polyline points="${ptsD}" fill="none" stroke="var(--red)" stroke-width="2"></polyline>
+    </svg>
+    <div style="display:flex; margin-top:6px;">
+      ${seriesDados.map(x=>`<div style="flex:1; text-align:center; font-size:10.5px; color:var(--ink-soft);">${monthLabel(x.ym).split("/")[0]}</div>`).join("")}
+    </div>
+  `;
+}
 function trendBadge(pct, orientacaoAltaBoa, sufixo){
   if(pct === null || !isFinite(pct)) return "";
   const bom = orientacaoAltaBoa ? pct >= 0 : pct <= 0;
@@ -801,8 +893,13 @@ function contaLabel(id){
 --------------------------------------------------------- */
 let currentView = "dashboard";
 let dashPeriod = thisMonthYM(); // "YYYY-MM" ou "all"
+let dashCompetenciaPeriod = "all";
 let drePeriod = thisMonthYM();
+let dreCompetenciaPeriod = "all";
 let analisePeriod = thisMonthYM();
+let acessosLog = [];
+let acessosCarregando = false;
+let acessosCarregado = false;
 let reportType = "dre"; // dre | receitas | despesas | fluxo
 let filters = { tipo:"todos", periodo:"all", busca:"" };
 let buscaClientes = "";
@@ -832,6 +929,7 @@ const ICONS = {
   print: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M6 17v4h12v-4"/></svg>`,
   dre: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 3h13l3 3v15H4z"/><path d="M8 11h8M8 15h8M8 7h4"/></svg>`,
   analise: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a6 6 0 0 0-4 10.5c.6.5 1 1.3 1 2.1V16h6v-1.4c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 2Z"/></svg>`,
+  acessos: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3.2"/></svg>`,
   exportIc: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>`,
   importIc: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>`,
   edit: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
@@ -880,6 +978,7 @@ function render(){
         ${navBtn("relatorios","dre","Relatórios")}
         <div class="nav-label">Análise</div>
         ${navBtn("analise","analise","Análise")}
+        ${authUser && authUser.email === ADMIN_EMAIL ? navBtn("acessos","acessos","Controle de Acesso") : ""}
         <div class="nav-label">Cadastros</div>
         ${navBtn("classificacoes","tags","Classificações")}
         ${navBtn("pagamentos","banco","Bancos e Pagamentos")}
@@ -905,6 +1004,7 @@ function render(){
           <button id="btnExport" class="link-btn">${ICONS.exportIc} Exportar dados</button>
           ${podeEditar() ? `<button id="btnImport" class="link-btn">${ICONS.importIc} Importar dados</button>` : ""}
           <button id="btnTemplate" class="link-btn">${ICONS.exportIc} Baixar modelo de planilha</button>
+          <button id="btnExportBI" class="link-btn">${ICONS.exportIc} Exportar dados completos (Power BI)</button>
           ${podeEditar() ? `<input type="file" id="fileImport" accept=".json,application/json,.xlsx,.xls,.csv" style="display:none" />` : ""}
           <div class="import-hint">Backup: .json &nbsp;·&nbsp; Lançamentos: .xlsx / .csv (Tipo é opcional — valor negativo = despesa)</div>
         </div>
@@ -944,10 +1044,17 @@ service cloud.firestore {
     match /nff_financeiro/{docId} {
       allow read, write: if request.auth != null;
     }
+    match /nff_acessos/{docId} {
+      allow write: if request.auth != null;
+      allow read: if request.auth != null
+        && request.auth.token.email == 'jvo.wallas@gmail.com';
+    }
   }
 }</pre>
         <p class="note">
-          Essa regra permite que qualquer pessoa <strong>autenticada</strong> (logada) acesse e atualize os dados.
+          A primeira regra permite que qualquer pessoa <strong>autenticada</strong> (logada) acesse e atualize os dados financeiros.
+          A segunda controla o histórico de acessos: qualquer pessoa logada pode gravar seu próprio login, mas
+          <strong>somente jvo.wallas@gmail.com</strong> consegue visualizar a lista completa.
           Para criar os logins, vá em <strong>Authentication</strong> no menu do Firebase → aba <strong>Sign-in method</strong> →
           ative <strong>E-mail/senha</strong> → depois, na aba <strong>Users</strong>, clique em <strong>Add user</strong> e
           cadastre o e-mail e senha de cada pessoa que poderá acessar o sistema. Depois de salvar o arquivo com sua
@@ -1075,6 +1182,7 @@ function topbar(){
     usuarios:["Usuários","Pessoas com acesso ao programa"],
     relatorios:["Relatórios","Escolha o tipo de relatório para analisar o período"],
     analise:["Análise","Leitura automática do cenário financeiro, com pontos positivos e de atenção"],
+    acessos:["Controle de Acesso","Histórico de entradas no sistema"],
   };
   const [t,s] = titles[currentView] || titles.dashboard;
   return `
@@ -1087,6 +1195,7 @@ function topbar(){
       </div>
       <div class="topbar-right">
         ${currentView === "dashboard" ? periodSelector("dashPeriodSel", dashPeriod) : ""}
+        ${currentView === "dashboard" ? competenciaSelector("dashCompetenciaSel", dashCompetenciaPeriod) : ""}
       </div>
     </div>
   `;
@@ -1101,9 +1210,24 @@ function periodSelector(id, value){
     </select>
   `;
 }
+function competenciaSelector(id, value){
+  const meses = getAvailableCompetencias();
+  return `
+    <select class="period-select" id="${id}">
+      <option value="all" ${value==="all"?"selected":""}>Filtrar por Competência…</option>
+      ${meses.map(m=>`<option value="${m}" ${value===m?"selected":""}>${monthLabel(m)}</option>`).join("")}
+    </select>
+  `;
+}
 
 function getAvailableMonths(){
   const set = new Set(state.lancamentos.map(l=>l.data.slice(0,7)));
+  set.add(thisMonthYM());
+  return Array.from(set).sort().reverse();
+}
+
+function getAvailableCompetencias(){
+  const set = new Set(state.lancamentos.map(l=>l.competencia || l.data.slice(0,7)));
   set.add(thisMonthYM());
   return Array.from(set).sort().reverse();
 }
@@ -1121,6 +1245,7 @@ function viewContent(){
   if(currentView === "usuarios") return podeGerenciarUsuarios() ? usuariosView() : acessoNegadoView();
   if(currentView === "relatorios") return relatoriosView();
   if(currentView === "analise") return analiseView();
+  if(currentView === "acessos") return (authUser && authUser.email === ADMIN_EMAIL) ? acessosView() : acessoNegadoView();
   return "";
 }
 
@@ -1145,7 +1270,10 @@ function filteredByPeriod(list, period){
 }
 
 function dashboardView(){
-  const lancs = filteredByPeriod(state.lancamentos, dashPeriod);
+  const usandoCompetenciaDash = dashCompetenciaPeriod !== "all";
+  const lancs = usandoCompetenciaDash
+    ? state.lancamentos.filter(l => (l.competencia || l.data.slice(0,7)) === dashCompetenciaPeriod)
+    : filteredByPeriod(state.lancamentos, dashPeriod);
   const receitas = lancs.filter(l=>l.tipo==="receita");
   const despesas = lancs.filter(l=>l.tipo==="despesa");
   const totalR = receitas.reduce((a,l)=>a+Number(l.valor),0);
@@ -1154,9 +1282,12 @@ function dashboardView(){
   const margem = totalR > 0 ? (saldo/totalR*100) : null;
 
   let variR = null, variD = null, variSaldo = null, variMargem = null;
-  if(dashPeriod !== "all"){
-    const anterior = mesAnterior(dashPeriod);
-    const lancsAnt = filteredByPeriod(state.lancamentos, anterior);
+  const periodoAtivoDash = usandoCompetenciaDash ? dashCompetenciaPeriod : dashPeriod;
+  if(periodoAtivoDash !== "all"){
+    const anterior = mesAnterior(periodoAtivoDash);
+    const lancsAnt = usandoCompetenciaDash
+      ? state.lancamentos.filter(l => (l.competencia || l.data.slice(0,7)) === anterior)
+      : filteredByPeriod(state.lancamentos, anterior);
     const totalRAnt = lancsAnt.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor),0);
     const totalDAnt = lancsAnt.filter(l=>l.tipo==="despesa").reduce((a,l)=>a+Number(l.valor),0);
     const saldoAnt = totalRAnt - totalDAnt;
@@ -1166,6 +1297,19 @@ function dashboardView(){
     if(saldoAnt !== 0) variSaldo = (saldo-saldoAnt)/Math.abs(saldoAnt)*100;
     if(margem !== null && margemAnt !== null) variMargem = margem - margemAnt;
   }
+
+  const seriesMeses = ultimosNMeses(periodoAtivoDash, 6);
+  const seriesDados = seriesMeses.map(ym=>{
+    const l = usandoCompetenciaDash
+      ? state.lancamentos.filter(x => (x.competencia || x.data.slice(0,7)) === ym)
+      : filteredByPeriod(state.lancamentos, ym);
+    const r = l.filter(x=>x.tipo==="receita").reduce((a,x)=>a+Number(x.valor),0);
+    const d = l.filter(x=>x.tipo==="despesa").reduce((a,x)=>a+Number(x.valor),0);
+    return { ym, r, d, saldo: r-d, margem: r>0 ? (r-d)/r*100 : 0 };
+  });
+  const serieR = seriesDados.map(x=>x.r);
+  const serieD = seriesDados.map(x=>x.d);
+  const serieSaldo = seriesDados.map(x=>x.saldo);
 
   const porCategoria = (list, cats) => {
     const map = {};
@@ -1223,37 +1367,45 @@ function dashboardView(){
     <div class="cards-row cards-row-4">
       <div class="card acc-green">
         <div class="card-top">
-          <div class="kpi-label">Receitas</div>
-          <div class="card-icon green">${ICONS.receita}</div>
+          <div>
+            <div class="kpi-label">Receitas</div>
+            <div class="kpi-value green">R$ ${fmtMoney(totalR)}</div>
+          </div>
+          ${sparklineSVG(serieR, "var(--green)")}
         </div>
-        <div class="kpi-value green">R$ ${fmtMoney(totalR)}</div>
         <div class="kpi-sub">${receitas.length} lançamento(s)</div>
         ${trendBadge(variR, true)}
       </div>
       <div class="card acc-red">
         <div class="card-top">
-          <div class="kpi-label">Despesas</div>
-          <div class="card-icon red">${ICONS.despesa}</div>
+          <div>
+            <div class="kpi-label">Despesas</div>
+            <div class="kpi-value red">R$ ${fmtMoney(totalD)}</div>
+          </div>
+          ${sparklineSVG(serieD, "var(--red)")}
         </div>
-        <div class="kpi-value red">R$ ${fmtMoney(totalD)}</div>
         <div class="kpi-sub">${despesas.length} lançamento(s)</div>
         ${trendBadge(variD, false)}
       </div>
       <div class="card ${saldo>=0?'acc-green':'acc-red'}">
         <div class="card-top">
-          <div class="kpi-label">Saldo</div>
-          <div class="card-icon ${saldo>=0?'green':'red'}">${ICONS.dashboard}</div>
+          <div>
+            <div class="kpi-label">Saldo</div>
+            <div class="kpi-value" style="color:${saldo>=0 ? 'var(--green)':'var(--red)'}">R$ ${fmtMoney(saldo)}</div>
+          </div>
+          ${sparklineSVG(serieSaldo, saldo>=0 ? "var(--navy-900)" : "var(--red)")}
         </div>
-        <div class="kpi-value" style="color:${saldo>=0 ? 'var(--green)':'var(--red)'}">R$ ${fmtMoney(saldo)}</div>
         <div class="kpi-sub">${saldo>=0 ? "Resultado positivo" : "Resultado negativo"}</div>
         ${trendBadge(variSaldo, true)}
       </div>
       <div class="card acc-navy">
         <div class="card-top">
-          <div class="kpi-label">Margem líquida</div>
-          <div class="card-icon navy">${ICONS.dre}</div>
+          <div>
+            <div class="kpi-label">Margem líquida</div>
+            <div class="kpi-value" style="color:var(--navy-900)">${margem===null ? "—" : margem.toFixed(1)+"%"}</div>
+          </div>
+          ${progressRingSVG(margem===null ? 0 : margem, "var(--gold)")}
         </div>
-        <div class="kpi-value" style="color:var(--navy-900)">${margem===null ? "—" : margem.toFixed(1)+"%"}</div>
         <div class="kpi-sub">${margem===null ? "Sem receita no período" : (margem>=20 ? "Patamar saudável" : margem>=10 ? "Patamar razoável" : "Abaixo do recomendado")}</div>
         ${variMargem===null ? "" : trendBadge(variMargem, true, " pts")}
       </div>
@@ -1271,7 +1423,7 @@ function dashboardView(){
         `).join("") : `<div class="empty-state"><div class="glyph">🏦</div><div class="t">Nenhum lançamento vinculado a conta</div>Informe a conta bancária nos lançamentos para ver esse resumo.</div>`}
       </div>
       <div class="panel">
-        <div class="panel-head"><h2>Top clientes</h2><span class="hint">${dashPeriod==="all"?"todo o período":monthLabel(dashPeriod)}</span></div>
+        <div class="panel-head"><h2>Top clientes</h2><span class="hint">${usandoCompetenciaDash ? `Competência ${monthLabel(dashCompetenciaPeriod)}` : (dashPeriod==="all"?"todo o período":monthLabel(dashPeriod))}</span></div>
         ${topClientes.length ? topClientes.map((c,i)=>`
           <div class="bar-row">
             <div class="label" title="${c.nome}">${i+1}. ${c.nome}</div>
@@ -1283,7 +1435,7 @@ function dashboardView(){
 
     <div class="grid-2">
       <div class="panel">
-        <div class="panel-head"><h2>Receitas por classificação</h2><span class="hint">${dashPeriod==="all"?"todo o período":monthLabel(dashPeriod)}</span></div>
+        <div class="panel-head"><h2>Receitas por classificação</h2><span class="hint">${usandoCompetenciaDash ? `Competência ${monthLabel(dashCompetenciaPeriod)}` : (dashPeriod==="all"?"todo o período":monthLabel(dashPeriod))}</span></div>
         ${catR.length ? catR.map(c=>`
           <div class="bar-row">
             <div class="label" title="${c.nome}">${c.nome}</div>
@@ -1294,14 +1446,32 @@ function dashboardView(){
       </div>
       <div class="panel">
         <div class="panel-head"><h2>Despesas por classificação</h2></div>
-        ${catD.length ? catD.map(c=>`
-          <div class="bar-row">
-            <div class="label" title="${c.nome}">${c.nome}</div>
-            <div class="bar-track"><div class="bar-fill red" style="width:${(c.valor/maxD*100).toFixed(1)}%"></div></div>
-            <div class="bar-val">R$ ${fmtMoney(c.valor)}</div>
-          </div>
-        `).join("") : `<div class="empty-state"><div class="glyph">＋</div><div class="t">Nenhuma despesa ainda</div></div>`}
+        ${catD.length ? (()=>{
+          const fatias = prepararFatiasDonut(catD, 5);
+          const totalD2 = fatias.reduce((a,f)=>a+f.valor,0);
+          const coresDespesa = ["#c94c4c","#d97a72","#e8a49a","#f0c3ba","#f7dbd4","#8a93a3"];
+          return `
+          <div style="display:flex; align-items:center; gap:20px;">
+            ${donutSVG(fatias, coresDespesa)}
+            <div style="display:flex; flex-direction:column; gap:8px; font-size:12px; flex:1; min-width:0;">
+              ${fatias.map((f,i)=>`
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                  <div style="display:flex; align-items:center; gap:7px; min-width:0;">
+                    <span style="width:8px;height:8px;border-radius:2px;background:${coresDespesa[i%coresDespesa.length]}; flex-shrink:0;"></span>
+                    <span style="color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${f.nome}">${f.nome}</span>
+                  </div>
+                  <span class="mono" style="color:var(--ink-soft); flex-shrink:0;">${totalD2>0 ? (f.valor/totalD2*100).toFixed(0) : 0}%</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>`;
+        })() : `<div class="empty-state"><div class="glyph">＋</div><div class="t">Nenhuma despesa ainda</div></div>`}
       </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Evolução mensal</h2><span class="hint">últimos 6 meses · <span style="color:var(--green)">● Receita</span> &nbsp;<span style="color:var(--red)">● Despesa</span></span></div>
+      ${evolucaoMensalSVG(seriesDados)}
     </div>
 
     <div class="panel">
@@ -1315,7 +1485,7 @@ function dashboardView(){
         <tbody>
           ${recentes.map(l=>`
             <tr>
-              <td class="mono">${fmtDate(l.data)}</td>
+              <td class="mono">${fmtDate(l.data)}${l.competencia ? `<div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;">Comp: ${monthLabel(l.competencia)}</div>` : ""}</td>
               <td>${l.descricao || "—"}</td>
               <td>${catName(l.tipo, l.categoriaId)}</td>
               <td><span class="tag ${l.tipo}"><span class="bar"></span>${l.tipo==="receita"?"Receita":"Despesa"}</span></td>
@@ -1345,7 +1515,7 @@ let editingId = null;
 
 function lancamentoForm(tipo, existing){
   const cats = tipo === "receita" ? state.categoriasReceita : state.categoriasDespesa;
-  const l = existing || { data: todayISO(), descricao:"", categoriaId: cats[0]?.id || "", valor:"", parte:"", bancoId: state.bancos[0]?.id || "", contaId: "", tipoTransacaoId: state.tiposTransacao[0]?.id || "", status:"Pago", obs:"" };
+  const l = existing || { data: todayISO(), competencia: todayISO().slice(0,7), descricao:"", categoriaId: cats[0]?.id || "", valor:"", parte:"", bancoId: state.bancos[0]?.id || "", contaId: "", tipoTransacaoId: state.tiposTransacao[0]?.id || "", status:"Pago", obs:"" };
   const partLabel = tipo === "receita" ? "Cliente" : "Fornecedor";
 
   return `
@@ -1357,6 +1527,10 @@ function lancamentoForm(tipo, existing){
         <div class="field">
           <label>Data</label>
           <input type="date" name="data" value="${l.data}" required />
+        </div>
+        <div class="field">
+          <label>Competência</label>
+          <input type="month" name="competencia" value="${l.competencia || (l.data||todayISO()).slice(0,7)}" title="Mês a que essa receita/despesa se refere, mesmo que paga em outro mês" />
         </div>
         <div class="field">
           <label>Classificação</label>
@@ -1445,21 +1619,38 @@ function lancamentosView(){
   const saldoFiltro = totalR - totalD;
 
   const months = getAvailableMonths();
+  const filtroResumo = [
+    filters.tipo !== "todos" ? (filters.tipo==="receita"?"Receitas":"Despesas") : null,
+    filters.periodo !== "all" ? monthLabel(filters.periodo) : null,
+    filters.busca.trim() ? `busca: "${filters.busca.trim()}"` : null,
+  ].filter(Boolean).join(" · ") || "todos os lançamentos, sem filtro";
 
   return `
     <div class="panel">
-      <div class="filters-row">
-        <select id="fTipo">
-          <option value="todos" ${filters.tipo==="todos"?"selected":""}>Todos os tipos</option>
-          <option value="receita" ${filters.tipo==="receita"?"selected":""}>Receitas</option>
-          <option value="despesa" ${filters.tipo==="despesa"?"selected":""}>Despesas</option>
-        </select>
-        <select id="fPeriodo">
-          <option value="all" ${filters.periodo==="all"?"selected":""}>Todo o período</option>
-          ${months.map(m=>`<option value="${m}" ${filters.periodo===m?"selected":""}>${monthLabel(m)}</option>`).join("")}
-        </select>
-        <input id="fBusca" type="text" placeholder="Buscar por descrição, cliente/fornecedor ou classificação…" value="${filters.busca}" style="min-width:260px;" />
+      <div class="filters-row no-print" style="justify-content:space-between; align-items:center;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <select id="fTipo">
+            <option value="todos" ${filters.tipo==="todos"?"selected":""}>Todos os tipos</option>
+            <option value="receita" ${filters.tipo==="receita"?"selected":""}>Receitas</option>
+            <option value="despesa" ${filters.tipo==="despesa"?"selected":""}>Despesas</option>
+          </select>
+          <select id="fPeriodo">
+            <option value="all" ${filters.periodo==="all"?"selected":""}>Todo o período</option>
+            ${months.map(m=>`<option value="${m}" ${filters.periodo===m?"selected":""}>${monthLabel(m)}</option>`).join("")}
+          </select>
+          <input id="fBusca" type="text" placeholder="Buscar por descrição, cliente/fornecedor ou classificação…" value="${filters.busca}" style="min-width:260px;" />
+        </div>
+        <button class="btn ghost" id="btnPrintLancamentos" style="flex-shrink:0;">${ICONS.print} Imprimir / Salvar PDF</button>
       </div>
+
+      <div class="print-area">
+        <div class="print-header">
+          <img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA" />
+          <div>
+            <div class="ph-title">NFF Serviços LTDA — Lançamentos</div>
+            <div class="ph-sub">Filtro: ${filtroResumo} · Emitido em ${new Date().toLocaleString('pt-BR')}</div>
+          </div>
+        </div>
 
       ${list.length ? `
       <table>
@@ -1467,7 +1658,7 @@ function lancamentosView(){
         <tbody>
           ${list.map(l=>`
             <tr>
-              <td class="mono">${fmtDate(l.data)}</td>
+              <td class="mono">${fmtDate(l.data)}${l.competencia ? `<div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;">Comp: ${monthLabel(l.competencia)}</div>` : ""}</td>
               <td>${l.descricao||"—"}${l.parte?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${l.parte}</div>`:""}</td>
               <td>${catName(l.tipo,l.categoriaId)}</td>
               <td>${bancoName(l.bancoId)}${l.tipoTransacaoId?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${tipoTransacaoName(l.tipoTransacaoId)}</div>`:""}${l.contaId?`<div style="font-size:11px;color:var(--ink-soft);">${contaLabel(l.contaId)}</div>`:""}</td>
@@ -1476,7 +1667,7 @@ function lancamentosView(){
               <td class="mono" style="text-align:right; color:${l.tipo==="receita"?"var(--green)":"var(--red)"}">
                 ${l.tipo==="receita"?"+":"−"} R$ ${fmtMoney(l.valor)}
               </td>
-              <td>
+              <td class="no-print">
                 ${podeEditar() ? `
                 <div class="row-actions">
                   <button class="icon-btn" data-edit="${l.id}" title="Editar">${ICONS.edit}</button>
@@ -1494,6 +1685,7 @@ function lancamentosView(){
           </tr>
         </tfoot>
       </table>` : `<div class="empty-state"><div class="glyph">📋</div><div class="t">Nenhum lançamento encontrado</div>Ajuste os filtros ou registre um novo lançamento.</div>`}
+      </div>
     </div>
   `;
 }
@@ -1531,7 +1723,41 @@ function classificacoesView(){
         <div class="dre-note">O grupo define em qual linha da DRE essa despesa será somada.</div>` : ""}
       </div>
     </div>
+
+    ${podeEditar() ? `
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Reclassificar lançamentos em lote</h2>
+        <span class="hint">Move todos os lançamentos de uma classificação para outra</span>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Tipo</label>
+          <select id="reclassTipo">
+            <option value="despesa">Despesa</option>
+            <option value="receita">Receita</option>
+          </select>
+        </div>
+        <div class="field"></div>
+        <div class="field">
+          <label>De (classificação atual)</label>
+          <select id="reclassDe">${opcoesCategorias("despesa")}</select>
+        </div>
+        <div class="field">
+          <label>Para (nova classificação)</label>
+          <select id="reclassPara">${opcoesCategorias("despesa")}</select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn primary neutral" id="btnReclassificar">Mover lançamentos</button>
+        </div>
+      </div>
+    </div>` : ""}
   `;
+}
+
+function opcoesCategorias(tipo){
+  const cats = tipo === "receita" ? state.categoriasReceita : state.categoriasDespesa;
+  return cats.map(c=>`<option value="${c.id}">${c.nome}</option>`).join("");
 }
 
 function catItem(c, tipo){
@@ -1988,6 +2214,7 @@ function relatoriosView(){
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
         ${showPeriod ? periodSelector("relPeriodSel", drePeriod) : ""}
+        ${reportType === "dre" ? competenciaSelector("dreCompetenciaSel", dreCompetenciaPeriod) : ""}
         <button class="btn ghost" id="btnPrintReport">${ICONS.print} Imprimir / Salvar PDF</button>
       </div>
     </div>
@@ -1996,7 +2223,7 @@ function relatoriosView(){
         <img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA" />
         <div>
           <div class="ph-title">NFF Serviços LTDA — ${tipoLabel}</div>
-          <div class="ph-sub">Período: ${drePeriod==="all"?"todo o período":monthLabel(drePeriod)} · Emitido em ${new Date().toLocaleString('pt-BR')}</div>
+          <div class="ph-sub">Período: ${reportType==="dre" && dreCompetenciaPeriod!=="all" ? `Competência ${monthLabel(dreCompetenciaPeriod)}` : (drePeriod==="all"?"todo o período":monthLabel(drePeriod))} · Emitido em ${new Date().toLocaleString('pt-BR')}</div>
         </div>
       </div>
       ${reportType === "dre" ? dreReport() : ""}
@@ -2011,7 +2238,10 @@ function relatoriosView(){
 }
 
 function dreReport(){
-  const lancs = filteredByPeriod(state.lancamentos, drePeriod);
+  const usandoCompetencia = dreCompetenciaPeriod !== "all";
+  const lancs = usandoCompetencia
+    ? state.lancamentos.filter(l => (l.competencia || l.data.slice(0,7)) === dreCompetenciaPeriod)
+    : filteredByPeriod(state.lancamentos, drePeriod);
   const receitas = lancs.filter(l=>l.tipo==="receita");
   const despesas = lancs.filter(l=>l.tipo==="despesa");
 
@@ -2048,7 +2278,7 @@ function dreReport(){
     <div class="panel">
       <div class="panel-head">
         <h2>Demonstração do Resultado do Exercício</h2>
-        <span class="hint">${drePeriod==="all" ? "todo o período" : monthLabel(drePeriod)}</span>
+        <span class="hint">${usandoCompetencia ? `Competência: ${monthLabel(dreCompetenciaPeriod)}` : (drePeriod==="all" ? "todo o período (por data)" : monthLabel(drePeriod)+" (por data)")}</span>
       </div>
 
       ${receitas.length===0 && despesas.length===0 ? `
@@ -2274,6 +2504,76 @@ function porClienteReport(){
 /* ---------------------------------------------------------
    ANÁLISE (leitura automática do cenário)
 --------------------------------------------------------- */
+/* ---------------------------------------------------------
+   CONTROLE DE ACESSO (somente ADMIN_EMAIL)
+--------------------------------------------------------- */
+function carregarAcessos(){
+  if(!FIREBASE_READY || !db) return;
+  acessosCarregando = true;
+  render();
+  db.collection("nff_acessos").orderBy("entrada","desc").limit(300).get()
+    .then(snap=>{
+      acessosLog = snap.docs.map(d=>{
+        const v = d.data();
+        return {
+          id: d.id,
+          email: v.email || "—",
+          entrada: v.entrada && v.entrada.toDate ? v.entrada.toDate() : null,
+          saida: v.saida && v.saida.toDate ? v.saida.toDate() : null,
+        };
+      });
+      acessosCarregado = true;
+      acessosCarregando = false;
+      render();
+    })
+    .catch(e=>{
+      console.warn("Falha ao carregar acessos:", e);
+      acessosCarregando = false;
+      acessosCarregado = true;
+      render();
+    });
+}
+
+function fmtDuracao(entrada, saida){
+  if(!entrada) return "—";
+  const fim = saida || new Date();
+  const ms = fim.getTime() - entrada.getTime();
+  if(ms < 0) return "—";
+  const min = Math.floor(ms/60000);
+  const h = Math.floor(min/60);
+  const m = min%60;
+  return h > 0 ? `${h}h ${m}min` : `${m}min`;
+}
+
+function acessosView(){
+  if(!acessosCarregado && !acessosCarregando) carregarAcessos();
+
+  return `
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Histórico de acessos</h2>
+        <button class="btn ghost" id="btnAtualizarAcessos" style="padding:7px 14px;">${acessosCarregando ? "Atualizando…" : "Atualizar"}</button>
+      </div>
+      ${acessosCarregando && !acessosLog.length ? `<div class="empty-state">Carregando…</div>` :
+        !acessosLog.length ? `<div class="empty-state"><div class="glyph">👁</div><div class="t">Nenhum acesso registrado ainda</div></div>` : `
+      <table>
+        <thead><tr><th>E-mail</th><th>Entrada</th><th>Saída</th><th>Duração</th></tr></thead>
+        <tbody>
+          ${acessosLog.map(a=>`
+            <tr>
+              <td>${a.email}</td>
+              <td class="mono">${a.entrada ? a.entrada.toLocaleString('pt-BR') : "—"}</td>
+              <td class="mono">${a.saida ? a.saida.toLocaleString('pt-BR') : `<span class="status-pill pendente">Em andamento</span>`}</td>
+              <td class="mono">${fmtDuracao(a.entrada, a.saida)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>`}
+    </div>
+    <div class="dre-note">Visível apenas para ${ADMIN_EMAIL}. Cada linha corresponde a um login no sistema.</div>
+  `;
+}
+
 function analiseView(){
   const lancs = filteredByPeriod(state.lancamentos, analisePeriod);
   const receitas = lancs.filter(l=>l.tipo==="receita");
@@ -2427,6 +2727,7 @@ function attachHandlers(){
   const btnLogout = document.getElementById("btnLogout");
   if(btnLogout) btnLogout.addEventListener("click", async ()=>{
     if(confirm("Deseja sair do sistema?")){
+      try{ await registrarAcessoFim(); }catch(e){ console.warn(e); }
       try{ await auth.signOut(); }catch(e){ console.warn(e); }
     }
   });
@@ -2438,15 +2739,23 @@ function attachHandlers(){
 
   const sel = document.getElementById("dashPeriodSel");
   if(sel) sel.addEventListener("change", e=>{ dashPeriod = e.target.value; render(); });
+  const dashCompetenciaSel = document.getElementById("dashCompetenciaSel");
+  if(dashCompetenciaSel) dashCompetenciaSel.addEventListener("change", e=>{ dashCompetenciaPeriod = e.target.value; render(); });
   const relSel = document.getElementById("relPeriodSel");
   if(relSel) relSel.addEventListener("change", e=>{ drePeriod = e.target.value; render(); });
+  const dreCompetenciaSel = document.getElementById("dreCompetenciaSel");
+  if(dreCompetenciaSel) dreCompetenciaSel.addEventListener("change", e=>{ dreCompetenciaPeriod = e.target.value; render(); });
   const analiseSel = document.getElementById("analisePeriodSel");
   if(analiseSel) analiseSel.addEventListener("change", e=>{ analisePeriod = e.target.value; render(); });
+  const btnAtualizarAcessos = document.getElementById("btnAtualizarAcessos");
+  if(btnAtualizarAcessos) btnAtualizarAcessos.addEventListener("click", ()=>{ acessosCarregado = false; carregarAcessos(); });
   document.querySelectorAll("[data-report]").forEach(el=>{
     el.addEventListener("click", ()=>{ reportType = el.getAttribute("data-report"); render(); });
   });
   const btnPrintReport = document.getElementById("btnPrintReport");
   if(btnPrintReport) btnPrintReport.addEventListener("click", ()=> window.print());
+  const btnPrintLancamentos = document.getElementById("btnPrintLancamentos");
+  if(btnPrintLancamentos) btnPrintLancamentos.addEventListener("click", ()=> window.print());
 
   const btnExport = document.getElementById("btnExport");
   if(btnExport) btnExport.addEventListener("click", ()=>{
@@ -2467,16 +2776,63 @@ function attachHandlers(){
       alert("Não foi possível carregar o gerador de planilhas. Verifique sua conexão com a internet e tente novamente.");
       return;
     }
-    const headers = ["Tipo","Data","Descrição","Classificação","Cliente/Fornecedor","Valor","Banco","Tipo de Transação","Status","Observações"];
+    const headers = ["Tipo","Data","Competência","Descrição","Classificação","Cliente/Fornecedor","Valor","Banco","Conta","Tipo de Transação","Status","Observações"];
     const exemplo = [
-      ["Receita","30/07/2026","Contrato mensal de limpeza — Ed. Aurora","Limpeza e Conservação","Condomínio Aurora",3500,"Inter","Pix","Pago",""],
-      ["Despesa","30/07/2026","Compra de material de limpeza","Materiais de Limpeza","Distribuidora Silva",420.5,"Caixa","Boleto","Pago",""],
+      ["Receita","30/07/2026","07/2026","Contrato mensal de limpeza — Ed. Aurora","Limpeza e Conservação","Condomínio Aurora",3500,"Inter","12616132","Pix","Pago",""],
+      ["Despesa","30/07/2026","07/2026","Compra de material de limpeza","Materiais de Limpeza","Distribuidora Silva",420.5,"Caixa","00981","Boleto","Pago",""],
     ];
     const ws = XLSX.utils.aoa_to_sheet([headers, ...exemplo]);
-    ws["!cols"] = headers.map(()=>({wch:24}));
+    ws["!cols"] = headers.map(()=>({wch:22}));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Lançamentos");
     XLSX.writeFile(wb, "modelo-lancamentos-nff.xlsx");
+  });
+
+  const btnExportBI = document.getElementById("btnExportBI");
+  if(btnExportBI) btnExportBI.addEventListener("click", ()=>{
+    if(typeof XLSX === "undefined"){
+      alert("Não foi possível carregar o gerador de planilhas. Verifique sua conexão com a internet e tente novamente.");
+      return;
+    }
+    if(!state.lancamentos.length){
+      alert("Ainda não há lançamentos registrados para exportar.");
+      return;
+    }
+    const headers = [
+      "ID","Tipo","Data","Ano","Mês","Competência","Descrição","Classificação","Grupo DRE",
+      "Cliente/Fornecedor","Valor","Banco","Agência","Número da Conta","Tipo de Conta",
+      "Tipo de Transação","Status","Observações"
+    ];
+    const linhas = [...state.lancamentos]
+      .sort((a,b)=> a.data.localeCompare(b.data))
+      .map(l=>{
+        const conta = state.contasBancarias.find(c=>c.id===l.contaId);
+        return [
+          l.id,
+          l.tipo === "receita" ? "Receita" : "Despesa",
+          fmtDate(l.data),
+          l.data ? l.data.slice(0,4) : "",
+          l.data ? l.data.slice(5,7) : "",
+          l.competencia ? monthLabel(l.competencia) : "",
+          l.descricao || "",
+          catName(l.tipo, l.categoriaId),
+          l.tipo === "despesa" ? (GRUPOS_DRE[catGrupoDRE(l.categoriaId)] || "") : "",
+          l.parte || "",
+          Number(l.valor)||0,
+          bancoNomeById(l.bancoId) || "",
+          conta ? (conta.agencia||"") : "",
+          conta ? (conta.numero||"") : "",
+          conta ? (conta.tipoConta||"") : "",
+          tipoTransacaoName(l.tipoTransacaoId),
+          l.status || "",
+          l.obs || "",
+        ];
+      });
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...linhas]);
+    ws["!cols"] = headers.map(()=>({wch:18}));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Lançamentos");
+    XLSX.writeFile(wb, `nff-lancamentos-completo-${todayISO()}.xlsx`);
   });
 
   const btnImport = document.getElementById("btnImport");
@@ -2562,6 +2918,26 @@ function parseDataCell(raw){
   return null;
 }
 
+function parseCompetenciaCell(raw){
+  if(raw instanceof Date && !isNaN(raw)){
+    const off = raw.getTimezoneOffset();
+    const d = new Date(raw.getTime() - off*60000);
+    return d.toISOString().slice(0,7);
+  }
+  if(typeof raw === "number" && typeof XLSX !== "undefined"){
+    const d = XLSX.SSF.parse_date_code(raw);
+    if(d) return `${d.y}-${String(d.m).padStart(2,"0")}`;
+  }
+  const s = String(raw||"").trim();
+  if(/^\d{4}-\d{2}$/.test(s)) return s;
+  if(/^\d{2}\/\d{4}$/.test(s)){
+    const [m,y] = s.split("/");
+    return `${y}-${m}`;
+  }
+  const full = parseDataCell(raw);
+  return full ? full.slice(0,7) : null;
+}
+
 function parseSpreadsheetRows(rows){
   const result = { added:0, errors:[] };
   rows.forEach((row, idx)=>{
@@ -2582,6 +2958,9 @@ function parseSpreadsheetRows(rows){
 
       const dataISO = parseDataCell(getCell(row, ["data"]));
       if(!dataISO) throw new Error(`coluna "Data" ausente ou em formato inválido (use DD/MM/AAAA)`);
+
+      const compRaw = getCell(row, ["competência","competencia","comp"]);
+      const competencia = compRaw ? (parseCompetenciaCell(compRaw) || dataISO.slice(0,7)) : dataISO.slice(0,7);
 
       const descricao = String(getCell(row, ["descrição","descricao","desc"]) || "").trim();
       if(!descricao) throw new Error(`coluna "Descrição" ausente`);
@@ -2631,7 +3010,7 @@ function parseSpreadsheetRows(rows){
       const obs = String(getCell(row, ["observações","observacoes","obs"]) || "").trim();
 
       state.lancamentos.push({
-        id: uid(), tipo, data: dataISO, descricao, categoriaId: cat.id,
+        id: uid(), tipo, data: dataISO, competencia, descricao, categoriaId: cat.id,
         valor, parte, bancoId, contaId, tipoTransacaoId, status, obs
       });
       result.added++;
@@ -2720,6 +3099,7 @@ function importSpreadsheet(file){
         id: editingId || uid(),
         tipo,
         data: fd.get("data"),
+        competencia: fd.get("competencia") || fd.get("data").slice(0,7),
         descricao: fd.get("descricao"),
         categoriaId: fd.get("categoriaId"),
         valor: parseFloat(fd.get("valor")||0),
@@ -2929,6 +3309,37 @@ function importSpreadsheet(file){
     });
   });
 
+  const reclassTipo = document.getElementById("reclassTipo");
+  const reclassDe = document.getElementById("reclassDe");
+  const reclassPara = document.getElementById("reclassPara");
+  if(reclassTipo && reclassDe && reclassPara){
+    reclassTipo.addEventListener("change", ()=>{
+      const opts = opcoesCategorias(reclassTipo.value);
+      reclassDe.innerHTML = opts;
+      reclassPara.innerHTML = opts;
+    });
+  }
+  const btnReclassificar = document.getElementById("btnReclassificar");
+  if(btnReclassificar){
+    btnReclassificar.addEventListener("click", async ()=>{
+      const tipo = reclassTipo.value;
+      const deId = reclassDe.value;
+      const paraId = reclassPara.value;
+      if(!deId || !paraId){ alert("Cadastre pelo menos duas classificações desse tipo primeiro."); return; }
+      if(deId === paraId){ alert("Escolha duas classificações diferentes."); return; }
+      const cats = tipo === "receita" ? state.categoriasReceita : state.categoriasDespesa;
+      const deNome = (cats.find(c=>c.id===deId)||{}).nome || "?";
+      const paraNome = (cats.find(c=>c.id===paraId)||{}).nome || "?";
+      const afetados = state.lancamentos.filter(l=>l.tipo===tipo && l.categoriaId===deId);
+      if(!afetados.length){ alert(`Nenhum lançamento encontrado em "${deNome}".`); return; }
+      if(!confirm(`Mover ${afetados.length} lançamento(s) de "${deNome}" para "${paraNome}"?\n\nEssa ação não pode ser desfeita automaticamente.`)) return;
+      state.lancamentos.forEach(l=>{ if(l.tipo===tipo && l.categoriaId===deId) l.categoriaId = paraId; });
+      await saveState();
+      mostrarBanner(`${afetados.length} lançamento(s) movido(s) de "${deNome}" para "${paraNome}".`);
+      render();
+    });
+  }
+
   document.querySelectorAll("[data-addcat]").forEach(el=>{
     el.addEventListener("click", async ()=>{
       const tipo = el.getAttribute("data-addcat");
@@ -3060,6 +3471,8 @@ function preserveFocus(id){
 /* ---------------------------------------------------------
    INIT
 --------------------------------------------------------- */
+window.addEventListener("pagehide", ()=>{ registrarAcessoFim(); });
+
 if(!FIREBASE_READY) iniciarAutenticacao();
 </script>
 </body>
