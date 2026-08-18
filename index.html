@@ -907,6 +907,7 @@ let dashPeriod = thisMonthYM(); // "YYYY-MM" ou "all"
 let dashCompetenciaPeriod = "all";
 let drePeriod = thisMonthYM();
 let dreCompetenciaPeriod = "all";
+let dreIncluirOperacional = false;
 let analisePeriod = thisMonthYM();
 let acessosLog = [];
 let acessosCarregando = false;
@@ -914,6 +915,7 @@ let acessosCarregado = false;
 let reportType = "dre"; // dre | receitas | despesas | fluxo
 let filters = { tipo:"todos", periodo:"all", busca:"" };
 let listaLancamentosFiltrada = [];
+let conciliacaoExportCache = null;
 let buscaClientes = "";
 let buscaFornecedores = "";
 let buscaContas = "";
@@ -2051,6 +2053,22 @@ function conciliacaoView(){
   });
   const saldoAtual = corrente;
 
+  conciliacaoExportCache = {
+    contaLabel: contaLabel(conta.id),
+    periodoLabel: conciliacaoPeriodo === "all" ? "Todo o período" : monthLabel(conciliacaoPeriodo),
+    saldoInicial, saldoArraste, saldoAtual, totalEntradas, totalSaidas,
+    linhas: linhas.map(({l,saldoCorrente})=>({
+      data: fmtDate(l.data),
+      descricao: l.descricao || "",
+      parte: l.parte || "",
+      classificacao: catName(l.tipo, l.categoriaId),
+      tipo: l.tipo === "receita" ? "Receita" : "Despesa",
+      status: l.status || "",
+      valor: (l.tipo==="receita" ? 1 : -1) * (Number(l.valor)||0),
+      saldoCorrente,
+    })),
+  };
+
   const months = getAvailableMonths();
 
   return `
@@ -2105,6 +2123,7 @@ function conciliacaoView(){
           <option value="all" ${conciliacaoPeriodo==="all"?"selected":""}>Todo o período</option>
           ${months.map(m=>`<option value="${m}" ${conciliacaoPeriodo===m?"selected":""}>${monthLabel(m)}</option>`).join("")}
         </select>
+        <button class="btn ghost" id="btnExportExcelConciliacao">${ICONS.exportIc} Exportar Excel</button>
         <button class="btn ghost" id="btnPrintConciliacao">${ICONS.print} Imprimir / Salvar PDF</button>
       </div>
 
@@ -2497,6 +2516,11 @@ function relatoriosView(){
       <div style="display:flex; align-items:center; gap:10px;">
         ${showPeriod ? periodSelector("relPeriodSel", drePeriod) : ""}
         ${reportType === "dre" ? competenciaSelector("dreCompetenciaSel", dreCompetenciaPeriod) : ""}
+        ${reportType === "dre" ? `
+        <label class="check-inline" style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft); white-space:nowrap;">
+          <input type="checkbox" id="dreIncluirOperacionalChk" ${dreIncluirOperacional ? "checked" : ""} />
+          Resultado com Mútuo
+        </label>` : ""}
         <button class="btn ghost" id="btnPrintReport">${ICONS.print} Imprimir / Salvar PDF</button>
       </div>
     </div>
@@ -2524,7 +2548,9 @@ function dreReport(){
   const lancsBase = usandoCompetencia
     ? state.lancamentos.filter(l => (l.competencia || l.data.slice(0,7)) === dreCompetenciaPeriod)
     : filteredByPeriod(state.lancamentos, drePeriod);
-  const lancs = lancsBase.filter(l => (l.tipoResultado || "Resultado") !== "Operacional");
+  const lancs = dreIncluirOperacional
+    ? lancsBase
+    : lancsBase.filter(l => (l.tipoResultado || "Resultado") !== "Operacional");
   const excluidosOperacional = lancsBase.length - lancs.length;
   const receitas = lancs.filter(l=>l.tipo==="receita");
   const despesas = lancs.filter(l=>l.tipo==="despesa");
@@ -2607,7 +2633,9 @@ function dreReport(){
         diretamente sobre a Receita Bruta (antes dos custos), pois incidem sobre o faturamento.
         As despesas são agrupadas conforme o grupo definido em cada classificação (Custo, Despesa ou Imposto),
         configurável em Cadastros → Classificações.
-        ${excluidosOperacional > 0 ? `<br><strong>${excluidosOperacional} lançamento(s)</strong> marcado(s) como "Operacional" foram excluídos deste cálculo (não afetam o resultado).` : ""}
+        ${dreIncluirOperacional
+          ? `<br><strong>Resultado com Mútuo:</strong> lançamentos marcados como "Operacional" (ex.: Mútuo) estão incluídos neste cálculo.`
+          : (excluidosOperacional > 0 ? `<br><strong>${excluidosOperacional} lançamento(s)</strong> marcado(s) como "Operacional" foram excluídos deste cálculo (não afetam o resultado).` : "")}
       </div>
       `}
     </div>
@@ -3034,6 +3062,8 @@ function attachHandlers(){
   if(relSel) relSel.addEventListener("change", e=>{ drePeriod = e.target.value; render(); });
   const dreCompetenciaSel = document.getElementById("dreCompetenciaSel");
   if(dreCompetenciaSel) dreCompetenciaSel.addEventListener("change", e=>{ dreCompetenciaPeriod = e.target.value; render(); });
+  const dreIncluirOperacionalChk = document.getElementById("dreIncluirOperacionalChk");
+  if(dreIncluirOperacionalChk) dreIncluirOperacionalChk.addEventListener("change", e=>{ dreIncluirOperacional = e.target.checked; render(); });
   const analiseSel = document.getElementById("analisePeriodSel");
   if(analiseSel) analiseSel.addEventListener("change", e=>{ analisePeriod = e.target.value; render(); });
   const btnAtualizarAcessos = document.getElementById("btnAtualizarAcessos");
@@ -3857,6 +3887,38 @@ function importSpreadsheet(file){
   if(conciliacaoPeriodoSel) conciliacaoPeriodoSel.addEventListener("change", e=>{ conciliacaoPeriodo = e.target.value; render(); });
   const btnPrintConciliacao = document.getElementById("btnPrintConciliacao");
   if(btnPrintConciliacao) btnPrintConciliacao.addEventListener("click", ()=> window.print());
+  const btnExportExcelConciliacao = document.getElementById("btnExportExcelConciliacao");
+  if(btnExportExcelConciliacao) btnExportExcelConciliacao.addEventListener("click", ()=>{
+    if(typeof XLSX === "undefined"){
+      alert("Não foi possível carregar o gerador de planilhas. Verifique sua conexão com a internet e tente novamente.");
+      return;
+    }
+    if(!conciliacaoExportCache){
+      alert("Não há dados de conciliação para exportar.");
+      return;
+    }
+    const c = conciliacaoExportCache;
+    const headers = ["Data","Descrição","Cliente/Fornecedor","Classificação","Tipo","Status","Valor","Saldo Corrente"];
+    const linhas = [
+      ["Saldo inicial (arrastado)", "", "", "", "", "", "", c.saldoArraste],
+      ...c.linhas.map(l=>[l.data, l.descricao, l.parte, l.classificacao, l.tipo, l.status, l.valor, l.saldoCorrente]),
+      [],
+      ["Totais", "", "", "", "", "", "", ""],
+      ["Entradas no período", "", "", "", "", "", c.totalEntradas, ""],
+      ["Saídas no período", "", "", "", "", "", -c.totalSaidas, ""],
+      ["Saldo atual da conta", "", "", "", "", "", "", c.saldoAtual],
+    ];
+    const cabecalho = [
+      [`Conciliação Bancária — ${c.contaLabel}`],
+      [`Período: ${c.periodoLabel} · Emitido em ${new Date().toLocaleString('pt-BR')}`],
+      [],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([...cabecalho, headers, ...linhas]);
+    ws["!cols"] = headers.map(()=>({wch:20}));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Conciliação");
+    XLSX.writeFile(wb, `nff-conciliacao-${c.contaLabel.replace(/[^a-zA-Z0-9]+/g,"-")}-${todayISO()}.xlsx`);
+  });
 
   const btnDefinirSaldoInicial = document.getElementById("btnDefinirSaldoInicial");
   if(btnDefinirSaldoInicial) btnDefinirSaldoInicial.addEventListener("click", ()=>{ editingSaldoInicial = true; render(); });
