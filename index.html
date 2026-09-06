@@ -107,7 +107,19 @@
     padding:6px 2px; transition:color .12s;
   }
   .link-btn:hover{ color:#fff; }
+  .link-btn.danger{ color:#e08a8a; }
+  .link-btn.danger:hover{ color:#ff9b9b; }
   .import-hint{ font-size:10px; color:rgba(255,255,255,.3); padding:4px 2px 0; line-height:1.4; }
+
+  .danger-zone{
+    margin-top:12px; padding:10px 12px; border-radius:10px;
+    background:rgba(201,76,76,.1); border:1px solid rgba(201,76,76,.3);
+  }
+  .danger-zone-label{
+    font-size:9.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    color:#e08a8a; margin-bottom:6px;
+  }
+  .danger-zone .link-btn{ padding:2px; }
 
   .main{ flex:1; min-width:0; display:flex; flex-direction:column; }
 
@@ -147,6 +159,12 @@
   .card.acc-green::before{ background:var(--green); }
   .card.acc-red::before{ background:var(--red); }
   .card.acc-navy::before{ background:var(--navy-700); }
+  .card.card-featured{ border-width:1.5px; }
+  .card.card-featured.acc-green{ background:linear-gradient(180deg,#fff,var(--green-soft) 180%); border-color:rgba(28,143,111,.3); }
+  .card.card-featured.acc-red{ background:linear-gradient(180deg,#fff,var(--red-soft) 180%); border-color:rgba(201,76,76,.3); }
+  .card.card-featured::before{ height:4px; }
+  .card.card-featured .kpi-value{ font-size:32px; }
+  .card.card-featured .kpi-label{ font-weight:700; }
   .card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
   .card-top svg{ flex-shrink:0; margin-top:2px; }
   .card-icon{
@@ -225,6 +243,7 @@
   .field{ display:flex; flex-direction:column; gap:6px; }
   .field.full{ grid-column:1 / -1; }
   .field label{ font-size:12px; font-weight:600; color:var(--ink-soft); }
+  .field label.req::after{ content:" *"; color:var(--red); font-weight:700; }
   .field input, .field select, .field textarea{
     font-family:'Inter', sans-serif; font-size:13.5px; padding:10px 12px;
     border:1px solid var(--paper-line); border-radius:9px; background:var(--paper); color:var(--ink);
@@ -442,6 +461,122 @@
     .topbar{ padding:16px 20px; }
   }
 
+
+  /* ---------------------------------------------------------
+     ANÁLISE GERENCIAL — RELATÓRIO EXECUTIVO
+  --------------------------------------------------------- */
+  .gerencial-wrap{ max-width:1180px; margin:0 auto; }
+  .gerencial-toolbar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .gerencial-kicker{
+    font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft);
+  }
+  .gerencial-title{
+    font-family:'Sora',sans-serif; font-size:23px; font-weight:700; color:var(--navy-900); margin:3px 0 2px;
+  }
+  .gerencial-sub{ font-size:12.5px; color:var(--ink-soft); }
+  .gerencial-page{
+    background:#fff; border:1px solid var(--paper-line); border-radius:16px; overflow:hidden;
+    box-shadow:var(--shadow); margin-bottom:20px;
+  }
+  .gerencial-head{
+    background:linear-gradient(135deg,#0b2458,#122e6d); color:#fff; padding:22px 26px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+  }
+  .gerencial-brand{ display:flex; align-items:center; gap:15px; min-width:0; }
+  .gerencial-brand img{ width:92px; max-height:46px; object-fit:contain; object-position:left center; filter:brightness(0) invert(1); }
+  .gerencial-brand .brand-name{ font-family:'Sora',sans-serif; font-weight:700; font-size:16px; }
+  .gerencial-brand .brand-sub{ font-size:10px; opacity:.75; margin-top:3px; letter-spacing:.03em; }
+  .gerencial-head-meta{ text-align:right; }
+  .gerencial-head-meta .period{ font-family:'Sora',sans-serif; font-size:16px; font-weight:700; }
+  .gerencial-head-meta .label{ font-size:9px; opacity:.7; margin-top:4px; text-transform:uppercase; letter-spacing:.06em; }
+  .gerencial-body{ padding:24px 26px 26px; }
+  .gerencial-section-title{
+    font-family:'Sora',sans-serif; font-size:18px; color:var(--navy-900); margin:0 0 4px;
+  }
+  .gerencial-section-sub{ font-size:11.5px; color:var(--ink-soft); margin-bottom:16px; }
+  .gerencial-kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
+  .gerencial-kpi{
+    border:1px solid #dce2eb; background:#f6f8fb; border-radius:12px; padding:12px 14px;
+  }
+  .gerencial-kpi .lab{ font-size:9px; font-weight:700; color:#697486; text-transform:uppercase; letter-spacing:.04em; }
+  .gerencial-kpi .val{ font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:700; color:#143d82; margin-top:6px; }
+  .gerencial-kpi .pct{ font-size:9.5px; color:#687386; margin-top:3px; }
+  .gerencial-kpi.green .val{ color:#19865d; }
+  .gerencial-kpi.gold .val{ color:#b07c13; }
+  .gerencial-kpi.red .val{ color:#c94c4c; }
+  .gerencial-cols{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .gerencial-box{
+    border:1px solid #dce2eb; border-radius:13px; padding:17px 18px; background:#fff;
+  }
+  .gerencial-box.blue{ background:#eef4fd; }
+  .gerencial-box.redsoft{ background:#fff3f1; }
+  .gerencial-box.goldsoft{ background:#fff9ec; }
+  .gerencial-box h3{
+    margin:0 0 3px; font-family:'Sora',sans-serif; font-size:12px; color:#17386e;
+    text-transform:uppercase; letter-spacing:.02em;
+  }
+  .gerencial-box.redsoft h3{ color:#b84c46; }
+  .gerencial-box .box-sub{ font-size:9.5px; color:#7b8493; margin-bottom:10px; }
+  .gerencial-table{ width:100%; border-collapse:collapse; font-size:11px; }
+  .gerencial-table td{ padding:7px 0; border-bottom:1px solid rgba(20,40,70,.08); }
+  .gerencial-table td:nth-child(2), .gerencial-table td:nth-child(3){ text-align:right; font-family:'IBM Plex Mono',monospace; white-space:nowrap; }
+  .gerencial-table .strong td{ font-weight:700; color:#17386e; }
+  .gerencial-table .green td:nth-child(2), .gerencial-table .green td:nth-child(3){ color:#16825a; font-weight:700; }
+  .gerencial-table .red td:nth-child(2), .gerencial-table .red td:nth-child(3){ color:#c94c4c; font-weight:700; }
+  .gerencial-table .total td{ border-top:2px solid #17386e; border-bottom:0; padding-top:9px; font-weight:700; }
+  .gerencial-wide{
+    border:1px solid #dce2eb; border-radius:13px; padding:17px 18px; margin-top:14px; background:#fff;
+  }
+  .gerencial-wide h3{
+    margin:0 0 12px; font-family:'Sora',sans-serif; font-size:12px; color:#17386e; text-transform:uppercase;
+  }
+  .gerencial-compare{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .gerencial-compare .item{ padding:10px 12px; border-radius:9px; background:#f7f8fa; }
+  .gerencial-compare .lab{ font-size:9.5px; color:#6d7685; }
+  .gerencial-compare .val{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:700; margin-top:5px; color:#17386e; }
+  .gerencial-compare .val.red{ color:#c94c4c; }
+  .gerencial-compare .val.gold{ color:#b07c13; }
+  .gerencial-cash{ display:grid; grid-template-columns:1fr auto 1fr auto 1fr auto 1fr; gap:10px; align-items:center; }
+  .gerencial-cash .cash-item{ padding:11px 10px; background:#f7f8fa; border-radius:9px; }
+  .gerencial-cash .lab{ font-size:9px; color:#6d7685; }
+  .gerencial-cash .val{ font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; margin-top:5px; }
+  .gerencial-cash .plus{ font-size:16px; color:#7a8494; font-weight:700; }
+  .gerencial-synthesis{
+    margin-top:14px; border-radius:13px; padding:18px 20px; background:#0b2458; color:#fff;
+  }
+  .gerencial-synthesis h3{ margin:0 0 11px; font-family:'Sora',sans-serif; font-size:12px; text-transform:uppercase; }
+  .gerencial-synthesis ul{ margin:0; padding:0; list-style:none; display:grid; gap:7px; }
+  .gerencial-synthesis li{ font-size:10.5px; line-height:1.45; padding-left:14px; position:relative; }
+  .gerencial-synthesis li::before{ content:"•"; position:absolute; left:0; color:#d8b04b; font-weight:700; }
+  .gerencial-bars{ display:flex; flex-direction:column; gap:8px; }
+  .gerencial-bar-row{ display:grid; grid-template-columns:88px 1fr 130px; align-items:center; gap:10px; font-size:10px; }
+  .gerencial-bar-name{ font-weight:600; color:#3e4858; }
+  .gerencial-bar-track{ height:9px; background:#e7edf5; border-radius:999px; overflow:hidden; }
+  .gerencial-bar-fill{ height:100%; background:#2357a5; border-radius:999px; }
+  .gerencial-bar-row:first-child .gerencial-bar-fill{ background:#c94c4c; }
+  .gerencial-bar-value{ text-align:right; font-family:'IBM Plex Mono',monospace; font-size:9.5px; white-space:nowrap; color:#445063; }
+  .gerencial-split{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+  .gerencial-directives{ margin-top:14px; border-radius:13px; padding:18px 20px; background:#0b2458; color:#fff; }
+  .gerencial-directives h3{ margin:0 0 12px; font-family:'Sora',sans-serif; font-size:12px; text-transform:uppercase; }
+  .gerencial-directives ol{ margin:0; padding-left:18px; display:grid; gap:8px; }
+  .gerencial-directives li{ font-size:10.5px; line-height:1.4; padding-left:3px; }
+  .gerencial-directives strong{ color:#fff; }
+  .gerencial-foot{
+    display:flex; justify-content:space-between; gap:10px; margin-top:14px; padding-top:9px;
+    border-top:1px solid #e4e8ee; color:#7c8492; font-size:9px;
+  }
+  @media (max-width:880px){
+    .gerencial-kpis,.gerencial-cols,.gerencial-split,.gerencial-compare{ grid-template-columns:1fr; }
+    .gerencial-cash{ grid-template-columns:1fr; }
+    .gerencial-cash .plus{ display:none; }
+    .gerencial-bar-row{ grid-template-columns:70px 1fr; }
+    .gerencial-bar-value{ grid-column:2; text-align:left; }
+    .gerencial-head{ align-items:flex-start; }
+  }
+
   /* impressão / PDF de relatórios */
   .print-header{ display:none; }
   @media print{
@@ -461,6 +596,23 @@
     .print-header img{ width:56px; }
     .print-header .ph-title{ font-family:'Sora',sans-serif; font-weight:700; font-size:13px; color:#12203b; }
     .print-header .ph-sub{ font-size:9.5px; color:#5b6576; margin-top:1px; }
+
+
+    .gerencial-wrap{ max-width:none; margin:0; }
+    .gerencial-toolbar{ display:none !important; }
+    .gerencial-page{
+      border:0 !important; border-radius:0 !important; box-shadow:none !important; margin:0;
+      overflow:visible; break-after:page; page-break-after:always;
+    }
+    .gerencial-page:last-child{ break-after:auto; page-break-after:auto; }
+    .gerencial-head{ border-radius:0; padding:14px 18px; }
+    .gerencial-body{ padding:16px 18px 18px; }
+    .gerencial-title{ font-size:18px; }
+    .gerencial-section-title{ font-size:15px; }
+    .gerencial-kpi .val{ font-size:14px; }
+    .gerencial-table{ font-size:10px; }
+    .gerencial-table td{ padding:5px 0; }
+    .gerencial-synthesis,.gerencial-directives{ break-inside:avoid; }
 
     .panel{ box-shadow:none !important; border:1px solid #ddd !important; padding:12px 14px; break-inside:avoid; }
     .panel:hover{ box-shadow:none !important; }
@@ -485,6 +637,30 @@
 
     .dist-col{ display:none; }
   }
+
+/* Detalhamento expansível da Base Competência */
+.gerencial-expand-btn{
+  width:22px;height:22px;border:1px solid #d7deea;background:#fff;border-radius:6px;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-right:7px;
+  color:#17356f;font-weight:800;font-size:13px;vertical-align:middle;transition:.15s ease;
+}
+.gerencial-expand-btn:hover{background:#eef4ff;border-color:#aebfe0;transform:translateY(-1px)}
+.gerencial-expand-btn .chev{display:inline-block;transition:transform .15s ease}
+.gerencial-expand-btn.open .chev{transform:rotate(90deg)}
+.gerencial-detail-row{display:none}
+.gerencial-detail-row.open{display:table-row}
+.gerencial-detail-row td{padding:0 12px 10px 38px!important;background:#f8faff;border-top:0!important}
+.gerencial-detail{border:1px solid #dfe6f0;border-radius:9px;background:#fff;overflow:hidden}
+.gerencial-detail-head{padding:8px 10px;font-size:10px;font-weight:800;color:#53627a;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #e8edf4}
+.gerencial-detail-list{max-height:230px;overflow:auto}
+.gerencial-detail-item{display:grid;grid-template-columns:78px minmax(160px,1fr) 110px 120px;gap:10px;padding:7px 10px;border-bottom:1px solid #edf1f6;font-size:10px;align-items:center}
+.gerencial-detail-item:last-child{border-bottom:0}
+.gerencial-detail-item .muted{color:#718096}
+.gerencial-detail-item .desc{font-weight:600;color:#26364d}
+.gerencial-detail-item .money{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.gerencial-detail-item .bank{color:#53627a}
+.gerencial-derived{padding:9px 10px;font-size:11px;color:#42516a;line-height:1.5}
+@media(max-width:900px){.gerencial-detail-item{grid-template-columns:70px 1fr 100px;}.gerencial-detail-item .bank{display:none}}
 </style>
 </head>
 <body>
@@ -725,6 +901,11 @@ function loadState(){
           if(parsed) migrarEstado(parsed);
         }catch(e){ console.warn("Payload inválido recebido do Firestore.", e); }
         lastUpdated = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate() : lastUpdated;
+        try{
+          await validarExtrato072026();
+        }catch(e){
+          console.error("[NFF] Falha na validação do Extrato 07/2026:", e);
+        }
       } else {
         await saveState();
       }
@@ -756,6 +937,88 @@ async function saveState(){
   }
   savingNow = false;
 }
+
+
+/* ---------------------------------------------------------
+   VALIDAÇÃO GERENCIAL — EXTRATO 07/2026
+   Fonte: planilha "07.2026 .xlsx", aba "Extrato".
+   Altera SOMENTE classificação/sub-classificação de despesas
+   quando houver correspondência segura por data, descrição,
+   valor e banco. Nenhum outro campo do lançamento é alterado.
+--------------------------------------------------------- */
+const EXTRATO_VALIDACAO_072026 = [["2026-07-01","Aline Rocha Alcoforado",1865.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Francisco Edson Quaresma De Almeida",1771.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Pablo Ronald De Lima Ferreira",1496.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Roanny Marques Da Silva",1152.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Narcilio Alves De Sousa",830.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Mickel Moreira Dos Santos",600.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Limite crÃ©dito P. jurÃ­dica",493.18,"Inter","Despesa","Juros Cheque Especial"],["2026-07-01","Power Epi",465.95,"Inter","Despesa","Software"],["2026-07-01","Maria Jose Viviane Da Silva",400.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Jonas Barbosa Moraes",325.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Jose Sergio De Melo",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Endrew Gomes De Araujo",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Thomas Thales Duarte Dos Santos",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Bryan Johnys Dos Santos Ferreira",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Jheimy Jhess Nunes De Souza",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","David Saymon Vital Costa Silveira",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","William Ramos De Brito Cavalcante",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Aline Rocha Alcoforado",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Pedro Valdivino Alves Martins",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Roanny Marques Da Silva",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Luis Emanuel Maciel Lima",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Paulo Wanderson Rodrigues De Castro",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Francisco Da Costa Nascimento",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Francisco Thiago Silva De Oliveira",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Josiane Caetano Da Silva",100.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Narcilio Alves De Sousa",100.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Samara Da Silva De Lima",100.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Nilceane Lima De Oliveira",100.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","IOF Adicional",97.39,"Inter","Despesa","IOF"],["2026-07-01","Francisco Edson Quaresma De Almeida",60.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Kleyton Cassio De Almeida",50.0,"Inter","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-01","Icaro Torres Do Nascimento",32.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-01","Cheque especial",12.13,"Inter","Custo dos Serviços Prestados","VA e VT"],["2026-07-02","Ismael Rodrigues Dantas",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-02","Francisco Da Costa Nascimento",60.0,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-02","Joaquim Jose De Matos",32.0,"Inter","Custo dos Serviços Prestados","VA e VT"],["2026-07-02","Joao Paulo Pereira Da Silva",32.0,"Inter","Custo dos Serviços Prestados","VA e VT"],["2026-07-02","Francisco Jose Silva Do Nascimento",32.0,"Inter","Custo dos Serviços Prestados","VA e VT"],["2026-07-02","Rafael Rodrigues Sampaio",10.8,"Inter","Custo dos Serviços Prestados","VA e VT"],["2026-07-03","Nadirlan Fernandes Fontinele",600.0,"Inter","Mútuo","Mútuo"],["2026-07-03","Edvan Moreira De Souza",375.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Sobral E Palacio Petroleo Ltda",335.81,"Inter","Mútuo","Mútuo"],["2026-07-03","Jose Pedro De Lima Silva",333.33,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Francinilton Soares Teixeira",170.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Marineis Da Silva De Castro",158.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Joaquim Jose De Matos",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Francisco Jose Silva Do Nascimento",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Pedro Angelo Moraes Da Silva",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Icaro Torres Do Nascimento",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Francisco Nilson Fernandes De Sousa",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Akyres Ferreira Silva",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Marcio Carneiro De Oliveira",105.8,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Evandro Alves De Oliveira",100.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Nilceane Lima De Oliveira",61.6,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Francisco Cleilton Gomes Ferreira",50.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Jose Pedro De Lima Silva",45.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Francisco Cleilton Gomes Ferreira",34.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Jose Pedro De Lima Silva",18.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-03","Uber Do Brasil Tecnologia Ltda",7.92,"Inter","Custo dos Serviços Prestados","Uber"],["2026-07-04","Luiz Paulo Costa",400.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-04","Roanny Marques Da Silva",400.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-04","Icaro Torres Do Nascimento",192.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-04","Luiz Paulo Costa",60.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-05","Luis Emanuel Maciel Lima",200.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-05","Bryan Johnys Dos Santos Ferreira",100.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-05","Francisco Cleilton Gomes Ferreira",91.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-05","Maria Jose Viviane Da Silva",54.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-05","Maria Jose Viviane Da Silva",54.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-05","Antonio Isaias Moraes Da Silva",10.8,"Inter","Custo dos Serviços Prestados","VA e VT"],["2026-07-06","Nadirlan Fernandes Fontinele",7000.0,"Inter","Mútuo","Mútuo"],["2026-07-06","Pagamento Fatura - NADIRLAN FERNANDES FONTINELE",1406.85,"Inter","Despesa","Cartão de Crédito"],["2026-07-06","Prefeitura Municipal De Fortal",977.68,"Inter","Impostos","ISS"],["2026-07-06","Kleyton Cassio De Almeida",656.3,"Inter","Custo dos Serviços Prestados","Salário"],["2026-07-06","Kleyton Cassio De Almeida",322.0,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-06","Bryan Johnys Dos Santos Ferreira",240.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","David Saymon Vital Costa Silveira",200.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Mickel Moreira Dos Santos",200.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Pedro Valdivino Alves Martins",200.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Paulo Wanderson Rodrigues De Castro",200.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Francisco Da Costa Nascimento",200.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Gabriel De Oliveira Silva",150.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Nadirlan Fernandes Fontinele",150.0,"Inter","Mútuo","Mútuo"],["2026-07-06","Joaquim Jose De Matos",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Evandro Alves De Oliveira",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","David Gabriel Da Costa De Sousa",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Akyres Ferreira Silva",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Ismael Rodrigues Dantas",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Joaquim Jose De Matos",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Thomas Thales Duarte Dos Santos",112.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Roberto De Sousa Mota",80.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-06","Roberto De Sousa Mota",32.0,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-06","Uber Do Brasil Tecnologia Ltda",18.92,"Inter","Custo dos Serviços Prestados","Uber"],["2026-07-06","99 Tecnologia Ltda",16.8,"Inter","Custo dos Serviços Prestados","Uber"],["2026-07-06","99 Tecnologia Ltda",15.9,"Inter","Custo dos Serviços Prestados","Uber"],["2026-07-07","Roberto De Sousa Mota",32.0,"Inter","Custo dos Serviços Prestados","VA e VT"],["2026-07-07","Francisco Da Costa Nascimento",30.0,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-08","Nff Servicos Ltda",7113.72,"Inter","Custo dos Serviços Prestados","Salário"],["2026-07-08","Nff Servicos Ltda",954.97,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-08","Gilliard De Almeida Queiroz",600.0,"Inter","Despesa","Contabilidade"],["2026-07-08","Nff Servicos Ltda",320.34,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-08","Moises Dos Santos Sousa",86.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-08","Francisco Da Costa Nascimento",50.0,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-08","Secretaria Da Fazenda Do Estad",45.29,"Inter","Despesa","Certidões"],["2026-07-08","Uber Uber *trip Help.u Sp            Bra",7.91,"Inter","Despesa","Certidões"],["2026-07-08","Secretaria Da Fazenda Do Estad",5.92,"Inter","Despesa","Certidões"],["2026-07-08","Secretaria Da Fazenda Do Estad",4.72,"Inter","Despesa","Certidões"],["2026-07-09","Valeska Iully Macedo Dantas",600.0,"Inter","Custo dos Serviços Prestados","Preposto"],["2026-07-09","Valeska Iully Macedo Dantas",114.0,"Inter","Custo dos Serviços Prestados","Insumos"],["2026-07-09","Francisco Da Costa Nascimento",50.0,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-09","Francisco Da Silva Sousa",32.0,"Inter","Custo dos Serviços Prestados","VA e VT"],["2026-07-10","Nadirlan Fernandes Fontinele",1000.0,"Inter","Mútuo","Mútuo"],["2026-07-10","INTERBRASIL SAUDE",442.89,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-10","Jose Pedro De Lima Silva",333.33,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-10","Nff Servicos Ltda",193.02,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-10","GNB ADMINISTRACAO DE BENEFICIO",67.2,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-10","Jose Pedro De Lima Silva",45.0,"Inter","Custo dos Serviços Prestados","Diária"],["2026-07-10","METROPOLITAN L SEG P PRIV SA",43.42,"Inter","Custo dos Serviços Prestados","Benefício"],["2026-07-11","Nadirlan Fernandes Fontinele",2000.0,"Inter","Mútuo","Mútuo"],["2026-07-13","Sobral E Palacio Petroleo Ltda",326.57,"Inter","Mútuo","Mútuo"],["2026-07-20","Nadirlan Fernandes Fontinele",4000.0,"Inter","Mútuo","Mútuo"],["2026-07-30","Davi Nascimento Lacerda",180.0,"Inter","Despesa","Certificado Digital"],["2026-07-31","Marcela Maria Cardoso Nascimento",4535.46,"Inter","Custo dos Serviços Prestados","Férias"],["2026-07-31","Uber Uber *trip Help.u Sp            Bra",16.91,"Inter","Custo dos Serviços Prestados","Uber"],["2026-07-31","Uber Uber *trip Help.u Sp            Bra",16.91,"Inter","Custo dos Serviços Prestados","Uber"],["2026-07-31","Uber Uber *trip Help.u Sp            Bra",7.93,"Inter","Custo dos Serviços Prestados","Uber"],["2026-08-01","Pix enviado para Oscar Dafonte",15000.0,"BTG","Despesa","Pro-labore"],["2026-08-01","Pix enviado para Nadirlan Fernandes Fontinele",15000.0,"BTG","Despesa","Pro-labore"],["2026-08-01","Pix enviado para Eliana Oliveira Dos Santos",15000.0,"BTG","Despesa","Pro-labore"],["2026-08-01","Pix enviado para Ralyson Lopes De Andrade",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-08-01","Pix enviado para Mateus Hoffmann Paiva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-08-01","Pix enviado para Joao Carlos Melo Paulino",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-08-01","Pix enviado para Isaias Jeronimo Da Silva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-08-01","Pix enviado para Francisco Welder Pereira Lima",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-08-01","Pix enviado para Francisco William Marques Pedroza",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-08-01","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Francisco Thiago Silva De Oliveira",124.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Ismael Rodrigues Dantas",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Marcelo Monteiro Neri",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Samara Da Silva De Lima",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Adriana Maria Cordeiro De Oliveira",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Joaquim Jose De Matos",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Icaro Torres Do Nascimento",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Francisco Jose Silva Do Nascimento",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Thomas Thales Duarte Dos Santos",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-02","Pix enviado para Joao Paulo Pereira Da Silva",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-03","Pix enviado para Nadirlan Fernandes Fontinele",765.07,"BTG","Mútuo","Mútuo"],["2026-07-06","Pix enviado para Nadirlan Fernandes Fontinele",2951.0,"BTG","Mútuo","Mútuo"],["2026-07-06","Pix enviado para Endrew Gomes De Araujo",1525.82,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-06","Pix enviado para Jose Sergio De Melo",1075.82,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-06","Pix enviado para Joao Darlis Da Silva Fernandes",926.5,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-06","Pix enviado para Francisco Ronaldo Fernandes De Menezes",708.26,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-06","Pix enviado para Jose Sergio De Melo",150.0,"BTG","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-06","Pix enviado para Endrew Gomes De Araujo",150.0,"BTG","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-06","Pix enviado para Antonio Isaias Moraes Da Silva",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Thomas Thales Duarte Dos Santos",460.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Jheimy Jhess Nunes De Souza",316.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para David Saymon Vital Costa Silveira",260.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Jose Sergio De Melo",243.8,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-07","Pix enviado para Josiane Caetano Da Silva",180.8,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Aline Rocha Alcoforado",180.8,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Narcilio Alves De Sousa",126.8,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Ismael Rodrigues Dantas",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Ruan Jonas Vercosa Saraiva",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para David Gabriel Da Costa De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Joaquim Jose De Matos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Mateus Da Silva Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Lindon Jhonson Silva De Oliveira",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-07","Pix enviado para Roberto De Sousa Mota",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Maria Jose Viviane Da Silva",400.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Rafael Rodrigues Sampaio",375.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Jackson Coelho Nery",335.85,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-08","Pix enviado para Antonio Isaias Moraes Da Silva",240.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Rogerio Rodrigues Carneiro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Francisco Jose Silva Do Nascimento",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para David Gabriel Da Costa De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Ismael Rodrigues Dantas",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Joaquim Jose De Matos",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Francisco Da Silva Sousa",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Fernando Calixto Alves",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Narcilio Alves De Sousa",50.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-08","Pix enviado para Francisco Da Silva Sousa",32.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-08","Pix enviado para Joaquim Jose De Matos",32.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-08","Pix enviado para Francisco Da Silva Sousa",32.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-08","Pix enviado para Fernando Calixto Alves",32.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-08","Pix enviado para Moises Dos Santos Sousa",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-09","Pix enviado para Francisco Cleilton Gomes Ferreira",182.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para Ueslei Severiano De Oliveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para David Gabriel Da Costa De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para Ismael Rodrigues Dantas",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-09","Pix enviado para Francisco Da Silva Sousa",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Francisco Edson Quaresma De Almeida",525.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Gabriel De Oliveira Silva",200.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Pedro Valdivino Alves Martins",200.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Paulo Wanderson Rodrigues De Castro",200.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Luis Emanuel Maciel Lima",200.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Mickel Moreira Dos Santos",200.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Jusiane Do Nascimento Negreiros",190.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Davi Nascimento Lacerda",180.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Josiane Caetano Da Silva",150.0,"BTG","Custo dos Serviços Prestados","Cesta Básica"],["2026-07-10","Pix enviado para Endrew Gomes De Araujo",147.0,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-10","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Joao Victor De Sousa Moreira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Ismael Rodrigues Dantas",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Maria Arina Oliveira Ferreira",110.8,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Gilvanilson Miranda De Oliveira",110.8,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Francisco Da Silva Sousa",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-10","Pix enviado para Francisco Da Silva Sousa",32.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-11","Pix enviado para Luiz Paulo Costa",400.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-11","Pix enviado para Francisco Cleilton Gomes Ferreira",180.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-11","Pix enviado para Maria Arina Oliveira Ferreira",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-11","Pix enviado para Herbe De Souza Morais",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-11","Pix enviado para Jose Pedro De Lima Silva",66.67,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-11","Pix enviado para Luiz Paulo Costa",60.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-11","Pix enviado para Iuri Lima De Oliveira",50.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-12","Pix enviado para Marcio Carneiro De Oliveira",105.4,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-12","Pix enviado para Maria Jose Viviane Da Silva",54.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Mickel Moreira Dos Santos",134.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para David Gabriel Da Costa De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Ueslei Severiano De Oliveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Joao Victor De Sousa Moreira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Francisco Da Silva Sousa",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Joao Paulo Pereira Da Silva",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Marineis Da Silva De Castro",85.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-13","Pix enviado para Francisco Da Costa Nascimento",50.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-13","Pix enviado para Francisco Da Costa Nascimento",50.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-14","Pix enviado para Jose Sergio De Melo",200.0,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-14","Pix enviado para Deyse De Oliveira Freitas",140.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Jose Pedro De Lima Silva",133.33,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para David Gabriel Da Costa De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Joaquim Jose De Matos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Adriana Maria Cordeiro De Oliveira",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Evandro Alves De Oliveira",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Nivaldo De Oliveira Ferreira",94.4,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Francisco Da Silva Sousa",60.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-14","Pix enviado para Francisco Da Costa Nascimento",50.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-14","Pix enviado para Jose Pedro De Lima Silva",18.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-15","Pix enviado para Pedro Valdivino Alves Martins",500.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Asa Sul Industria E Comercio De Malhas Ltda",419.2,"BTG","Custo dos Serviços Prestados","Fardamento"],["2026-07-15","Pix enviado para Maria Jose Viviane Da Silva",400.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para David Gabriel Da Costa De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Joaquim Jose De Matos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Josiane Caetano Da Silva",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-15","Pix enviado para Francisco Da Costa Nascimento",50.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-15","Pix enviado para Maria Jose Viviane Da Silva",36.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-16","Pix enviado para Narcilio Alves De Sousa",700.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Francisco Ronaldo Fernandes De Menezes",476.06,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-16","Pix enviado para Herbe De Souza Morais",200.0,"BTG","Custo dos Serviços Prestados","Bonificação Cliente"],["2026-07-16","Pix enviado para David Gabriel Da Costa De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Joaquim Jose De Matos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Marcia Maria Eufrasia De Araujo",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Maria Arina Oliveira Ferreira",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-16","Pix enviado para Francisco Da Costa Nascimento",50.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-17","Pix enviado para Nadirlan Fernandes Fontinele",15000.0,"BTG","Despesa","Pro-labore mês 06.2026"],["2026-07-17","Pix enviado para Nadirlan Fernandes Fontinele",10000.0,"BTG","Mútuo","Mútuo"],["2026-07-17","Pix enviado para Nadirlan Fernandes Fontinele",2500.0,"BTG","Mútuo","Mútuo"],["2026-07-17","Pix enviado para Nadirlan Fernandes Fontinele",2000.0,"BTG","Mútuo","Mútuo"],["2026-07-17","Pix enviado para Francisco Da Silva Sousa",400.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Luiz Paulo Costa",266.66,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Paulo Wanderson Rodrigues De Castro",204.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Luis Emanuel Maciel Lima",204.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Pedro Valdivino Alves Martins",204.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Francisco Da Costa Nascimento",204.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Gabriel De Oliveira Silva",194.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Maria Jose Viviane Da Silva",133.33,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Anibal Alves Da Silva",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Renato Sousa Da Silva",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para David Gabriel Da Costa De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Vivian Kessia Santos De Castro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Francisco Eric Pereira Castro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Adriana Maria Cordeiro De Oliveira",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Mateus Hoffmann Paiva",92.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Francisco William Marques Pedroza",92.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Guilherme Diniz De Moura",62.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Francisco William Marques Pedroza",40.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Luiz Paulo Costa",40.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-17","Pix enviado para Guilherme Diniz De Moura",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-19","Pix enviado para Marcia Maria Eufrasia De Araujo",160.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-19","Pix enviado para Samara Da Silva De Lima",120.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-19","Pix enviado para Josiane Caetano Da Silva",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-19","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-19","Pix enviado para Francisco Da Costa Nascimento",50.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-20","Pix enviado para Nadirlan Fernandes Fontinele",15000.0,"BTG","Mútuo","Mútuo"],["2026-07-20","Pix enviado para Mickel Moreira Dos Santos",800.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Josiane Caetano Da Silva",600.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Josiane Caetano Da Silva",600.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Maicon Da Silva Sales",585.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Maria Arina Oliveira Ferreira",500.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Power Comercio De Equipamentos E Materiais Ltda",151.2,"BTG","Custo dos Serviços Prestados","EPI"],["2026-07-20","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Francisco Eric Pereira Castro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Adriana Maria Cordeiro De Oliveira",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Antonia Mariana Andre Do Nascimento",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Antonia Mariana Andre Do Nascimento",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Francisco Da Silva Sousa",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Francisco Lucas Saldanha Lourenco",92.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Jozerlane Policarpo Dos Santos",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Joao Paulo Pereira Da Silva",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Francisco William Marques Pedroza",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Leticia Lima De Oliveira",50.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-20","Pix enviado para Joao Paulo Pereira Da Silva",32.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-20","Pix enviado para Francisco William Marques Pedroza",32.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-20","Pix enviado para Eliana Oliveira Dos Santos",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-20","Pix enviado para Francisco Lucas Saldanha Lourenco",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-21","Pix enviado para Nadirlan Fernandes Fontinele",30000.0,"BTG","Mútuo","Mútuo"],["2026-07-21","Pix enviado para Antonia Juliane De Oliveira Rabelo",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Rosa Maria Da Silva Coelho",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Mateus Hoffmann Paiva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Vivian Kessia Santos De Castro",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Ismael Rodrigues Dantas",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Francisco Eric Pereira Castro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Samuel Santos De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Francisco Lucas Saldanha Lourenco",92.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Lucas Goncalves Da Silva",92.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Wedeson Ferreira Da Silva Farias",92.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Francisco Da Costa Nascimento",60.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-21","Pix enviado para Francisco Da Silva Sousa",60.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-21","Pix enviado para Francisco Da Costa Nascimento",50.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-21","Pix enviado para Francisco Lucas Saldanha Lourenco",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-21","Pix enviado para Lucas Goncalves Da Silva",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-21","Pix enviado para Wedeson Ferreira Da Silva Farias",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-21","Pix enviado para Jozerlane Policarpo Dos Santos",12.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-22","Pix enviado para Endrew Gomes De Araujo",700.0,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-22","Pix enviado para Gabriel De Oliveira Silva",150.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Mateus Hoffmann Paiva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Ralyson Lopes De Andrade",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Isaias Jeronimo Da Silva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Joao Carlos Melo Paulino",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Mateus Hoffmann Paiva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Francisco Lucas Saldanha Lourenco",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Lucas Goncalves Da Silva",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Wedeson Ferreira Da Silva Farias",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Samuel Santos De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Antonia Mariana Andre Do Nascimento",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Jose Sergio De Melo",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-22","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Francisco Da Silva Sousa",288.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Francisco William Marques Pedroza",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Samuel Santos De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Francisco Lucas Saldanha Lourenco",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Wedeson Ferreira Da Silva Farias",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Marcio Carneiro De Oliveira",105.8,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Maria Arina Oliveira Ferreira",105.8,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Marcia Maria Eufrasia De Araujo",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Gabriel De Oliveira Silva",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Endrew Gomes De Araujo",97.2,"BTG","Custo dos Serviços Prestados","Salário"],["2026-07-23","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-23","Pix enviado para Francisco Da Costa Nascimento",60.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-24","Pix enviado para Ministerio Da Fazenda  - QRCode - 07202620542076624099861089",9809.35,"BTG","Impostos","DAS"],["2026-07-24","Pix enviado para Herbe De Souza Morais",1600.0,"BTG","Custo dos Serviços Prestados","Bonificação Cliente"],["2026-07-24","Pix enviado para Leonardo Da Silva Castelo Branco",260.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Adriana Maria Cordeiro De Oliveira",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Joao Carlos Melo Paulino",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Francisco William Marques Pedroza",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Isaias Jeronimo Da Silva",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Samuel Santos De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Wedeson Ferreira Da Silva Farias",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Ralyson Lopes De Andrade",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Francisco Lucas Saldanha Lourenco",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Joaquim Jose De Matos",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Eliana Oliveira Dos Santos",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-24","Pix enviado para Francisco Da Costa Nascimento",60.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-25","Pix enviado para Mateus Hoffmann Paiva",390.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-25","Pix enviado para Francisco Da Costa Nascimento",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-25","Pix enviado para Kayque Alves Ribeiro",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-25","Pix enviado para Francisco William Marques Pedroza",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-25","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-25","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-25","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-25","Pix enviado para Narcilio Alves De Sousa",50.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-26","Pix enviado para Pedro Valdivino Alves Martins",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-26","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-26","Pix enviado para Joao Carlos Melo Paulino",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-26","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-26","Pix enviado para Francisca Helena De Araujo Campos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-26","Pix enviado para Raphael Silva Taveira De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-26","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-26","Pix enviado para Francisco Da Costa Nascimento",60.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-27","Pix enviado para Herbe De Souza Morais",300.0,"BTG","Custo dos Serviços Prestados","Bonificação Cliente"],["2026-07-27","Pix enviado para Adriana Maria Cordeiro De Oliveira",200.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Joaquim Jose De Matos",181.6,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Leonardo Da Silva Castelo Branco",120.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Francisco Lucas Saldanha Lourenco",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Samuel Santos De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Jheimy Jhess Nunes De Souza",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Wedeson Ferreira Da Silva Farias",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Francisco Gutemberg Avelino Da Silva",111.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Camila Tamires Nascimento Lopes De Oliveira",94.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-27","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Francisco Edson Quaresma De Almeida",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Ralyson Lopes De Andrade",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Isaias Jeronimo Da Silva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Joao Carlos Melo Paulino",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Kayque Alves Ribeiro",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Francisco William Marques Pedroza",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Mateus Hoffmann Paiva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Nivaldo De Oliveira Ferreira",120.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Francisco Welder Pereira Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Emanoel Gabriel Borges Da Silva Ribeiro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Samuel Santos De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Wedeson Ferreira Da Silva Farias",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Jheimy Jhess Nunes De Souza",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Jefferson Nascimento De Abreu",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Wanderson Bezerra Dos Santos",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Maria De Nasare Modesto Nascimento",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Francisco Cleilton Gomes Ferreira",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-28","Pix enviado para Francisco Da Costa Nascimento",60.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-29","Pix enviado para Francisco Da Costa Nascimento",500.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Mateus Hoffmann Paiva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Kayque Alves Ribeiro",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Francisco William Marques Pedroza",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Wedeson Ferreira Da Silva Farias",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Samuel Costa Do Nascimento",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Emanoel Gabriel Borges Da Silva Ribeiro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Alesandro De Freitas Fernandes",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Samuel Santos De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Jheimy Jhess Nunes De Souza",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Jonas Pereira De Oliveira",106.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Mickel Moreira Dos Santos",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Marcia Maria Eufrasia De Araujo",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Antonia Mariana Andre Do Nascimento",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Jefferson Nascimento De Abreu",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Thomas Thales Duarte Dos Santos",80.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para Francisco Da Costa Nascimento",60.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-29","Pix enviado para Maria Micheline Uchoa De Sousa Pinheiro",54.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-29","Pix enviado para A R Servicos Graficos E Informatica Ltda",33.2,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-29","Pix enviado para Thomas Thales Duarte Dos Santos",32.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-29","Pix enviado para Wanderson Bezerra Dos Santos",30.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-30","Pix enviado para Mateus Hoffmann Paiva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Joao Carlos Melo Paulino",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Isaias Jeronimo Da Silva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Francisco Welder Pereira Lima",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Kayque Alves Ribeiro",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Francisco William Marques Pedroza",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Wedeson Ferreira Da Silva Farias",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Francisco Edson Quaresma De Almeida",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Rogerio Rodrigues Carneiro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Raphael Silva Taveira De Sousa",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Emanoel Gabriel Borges Da Silva Ribeiro",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Jheimy Jhess Nunes De Souza",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Maria De Nasare Modesto Nascimento",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Cesar Augusto Cavalcante",92.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-30","Pix enviado para Francisco Da Costa Nascimento",60.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-30","Pix enviado para Cesar Augusto Cavalcante",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-31","Pix enviado para Aline Rocha Alcoforado",1800.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Paulo Wanderson Rodrigues De Castro",1740.09,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Luis Emanuel Maciel Lima",1740.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Gabriel De Oliveira Silva",1490.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Mickel Moreira Dos Santos",670.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Pedro Valdivino Alves Martins",650.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Pedro Valdivino Alves Martins",590.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Nivaldo De Oliveira Ferreira",510.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Jonas Barbosa Moraes",325.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Narcilio Alves De Sousa",273.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Marcia Maria Eufrasia De Araujo",140.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Mateus Hoffmann Paiva",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Francisco Welder Pereira Lima",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Francisco William Marques Pedroza",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para David Gabriel Da Costa De Sousa",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Rodrigo Paulo Dos Santos",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Wedeson Ferreira Da Silva Farias",130.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Francisco Edson Quaresma De Almeida",115.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Robson Valdevino De Mesquita",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Jose Claudio De Lima",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Francisca Helena De Araujo Campos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Thomas Thales Duarte Dos Santos",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para David Saymon Vital Costa Silveira",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Jheimy Jhess Nunes De Souza",112.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Jose Sergio De Melo",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Abel David Ferreira De Freitas",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Antonia Mariana Andre Do Nascimento",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Suziane Venancio Da Silva",100.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Lucas Lima Pinto",92.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Jefferson Nascimento De Abreu",90.0,"BTG","Custo dos Serviços Prestados","Diária"],["2026-07-31","Pix enviado para Francisco Da Costa Nascimento",50.0,"BTG","Custo dos Serviços Prestados","Benefício"],["2026-07-31","Pix enviado para Mickel Moreira Dos Santos",30.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-31","Pix enviado para Ana Caroline Avelino Silva",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"],["2026-07-31","Pix enviado para Lucas Lima Pinto",20.0,"BTG","Custo dos Serviços Prestados","VA e VT"]];
+
+function reconNormText(v){
+  let x = String(v ?? "").trim().toLowerCase().replace(/\s+/g," ");
+  if(/[ÃÂ]/.test(x)){
+    try{ x = decodeURIComponent(escape(x)); }catch(e){}
+  }
+  return x.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+function reconKey(data, descricao, valor, banco){
+  const dt = String(data||"").slice(0,10);
+  const desc = reconNormText(descricao);
+  const val = Math.round(Math.abs(Number(valor)||0)*100)/100;
+  const bco = reconNormText(banco);
+  return `${dt}|${desc}|${val.toFixed(2)}|${bco}`;
+}
+
+function inferGrupoDRERecon(nome){
+  const n = reconNormText(nome);
+  if(n.includes("imposto") || n.includes("iss") || n.includes("simples")) return "imposto";
+  if(n.includes("custo")) return "custo";
+  return "administrativa";
+}
+
+async function validarExtrato072026(){
+  const VERSAO = "extrato-07-2026-v1";
+  state._validacoesGerenciais = state._validacoesGerenciais || {};
+  if(state._validacoesGerenciais["07/2026"] === VERSAO) return {corrigidos:0, correspondidos:0, naoEncontrados:0};
+
+  const mapa = new Map();
+  EXTRATO_VALIDACAO_072026.forEach(r=>{
+    const k = reconKey(r[0],r[1],r[2],r[3]);
+    if(!mapa.has(k)) mapa.set(k, r);
+  });
+
+  let correspondidos = 0, corrigidos = 0, naoEncontrados = 0;
+  const categorias = state.categoriasDespesa || [];
+
+  (state.lancamentos || []).forEach(l=>{
+    if(l.tipo !== "despesa") return;
+    // A planilha é a base de validação de julho/2026.
+    if(String(l.data||"").slice(0,7) !== "2026-07") return;
+
+    const k = reconKey(l.data, l.descricao, l.valor, bancoName(l.bancoId));
+    const r = mapa.get(k);
+    if(!r){ naoEncontrados++; return; }
+
+    correspondidos++;
+    const nomeClass = String(r[4]||"").trim();
+    const subClass = String(r[5]||"").trim();
+
+    let cat = categorias.find(c=>reconNormText(c.nome) === reconNormText(nomeClass));
+    if(!cat){
+      cat = {id:uid(), nome:nomeClass, grupoDRE:inferGrupoDRERecon(nomeClass)};
+      categorias.push(cat);
+    }
+
+    let mudou = false;
+    if(l.categoriaId !== cat.id){ l.categoriaId = cat.id; mudou = true; }
+    if(String(l.subClassificacao||"").trim() !== subClass){ l.subClassificacao = subClass; mudou = true; }
+
+    if(mudou) corrigidos++;
+  });
+
+  state._validacoesGerenciais["07/2026"] = VERSAO;
+  await saveState();
+  console.info("[NFF] Validação do Extrato 07/2026 concluída.", {
+    correspondidos, corrigidos, naoEncontrados
+  });
+  return {corrigidos, correspondidos, naoEncontrados};
+}
+
 
 /* ---------------------------------------------------------
    HELPERS
@@ -887,6 +1150,145 @@ function bancoNomeById(id){
   const b = (state.bancos||[]).find(b=>b.id===id);
   return b ? b.nome : "";
 }
+function valorPorExtenso(valor){
+  const UNIDADES = ["","um","dois","três","quatro","cinco","seis","sete","oito","nove"];
+  const DEZ_A_DEZENOVE = ["dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"];
+  const DEZENAS = ["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"];
+  const CENTENAS = ["","cento","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"];
+
+  function trescentos(n){
+    if(n===0) return "";
+    if(n===100) return "cem";
+    const c = Math.floor(n/100), r = n%100;
+    const partes = [];
+    if(c) partes.push(CENTENAS[c]);
+    if(r){
+      if(r<10) partes.push(UNIDADES[r]);
+      else if(r<20) partes.push(DEZ_A_DEZENOVE[r-10]);
+      else {
+        const d = Math.floor(r/10), u = r%10;
+        partes.push(DEZENAS[d] + (u ? " e "+UNIDADES[u] : ""));
+      }
+    }
+    return partes.join(" e ");
+  }
+
+  function inteiroPorExtenso(n){
+    if(n===0) return "zero";
+    const milhoes = Math.floor(n/1000000);
+    const milhares = Math.floor((n%1000000)/1000);
+    const resto = n%1000;
+    const partes = [];
+    if(milhoes) partes.push(trescentos(milhoes) + (milhoes>1 ? " milhões" : " milhão") + ((milhares===0 && resto===0) ? " de" : ""));
+    if(milhares) partes.push((milhares===1 ? "mil" : trescentos(milhares)+" mil"));
+    if(resto) partes.push(trescentos(resto));
+    return partes.join(" e ");
+  }
+
+  const v = Math.round((Number(valor)||0) * 100) / 100;
+  const inteiros = Math.floor(v);
+  const centavos = Math.round((v - inteiros) * 100);
+  const reaisTxt = inteiroPorExtenso(inteiros) + (inteiros === 1 ? " real" : " reais");
+  if(centavos === 0) return reaisTxt;
+  const centavosTxt = inteiroPorExtenso(centavos) + (centavos === 1 ? " centavo" : " centavos");
+  return `${reaisTxt} e ${centavosTxt}`;
+}
+
+function reciboDespesaHTML(l){
+  const numero = "RPD-" + (l.id||"").slice(-6).toUpperCase();
+  const beneficiario = l.parte || "—";
+  const descricao = l.descricao || "Despesa";
+  const classificacao = catName(l.tipo, l.categoriaId);
+  const dataFmt = fmtDate(l.data);
+  const compFmt = l.competencia ? monthLabel(l.competencia) : "—";
+  const forma = tipoTransacaoName(l.tipoTransacaoId);
+  const bancoConta = l.contaId ? contaLabel(l.contaId) : (bancoName(l.bancoId) || "—");
+  const valorFmt = fmtMoney(l.valor);
+  const extenso = valorPorExtenso(l.valor);
+  const emissao = new Date().toLocaleString('pt-BR');
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Recibo ${numero}</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; color:#12203b; }
+  body { width:210mm; min-height:297mm; display:flex; align-items:center; justify-content:center; background:#f4f5f7; }
+  .recibo { width:180mm; border:1.5px solid #12203b; border-radius:10px; overflow:hidden; background:#fff; }
+  .faixa { height:6px; background:linear-gradient(90deg, #12203b 0%, #c9a24b 18%, #12203b 18.5%, #12203b 100%); }
+  .cabecalho { display:flex; justify-content:space-between; align-items:flex-start; padding:20px 26px 16px; border-bottom:2px solid #12203b; }
+  .cabecalho img { height:34px; }
+  .empresa-info { font-size:10px; color:#6b7280; margin-top:6px; line-height:1.5; }
+  .recibo-tag { text-align:right; }
+  .recibo-tag .titulo { font-size:16px; font-weight:bold; letter-spacing:0.5px; color:#12203b; }
+  .recibo-tag .numero { font-size:11px; color:#6b7280; margin-top:4px; }
+  .recibo-tag .status { display:inline-block; margin-top:8px; background:#e8f5f0; color:#1c8f6f; font-size:11px; font-weight:bold; padding:4px 10px; border-radius:20px; }
+  .valor-bloco { text-align:center; padding:22px 26px 10px; }
+  .valor-bloco .label { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:0.6px; }
+  .valor-bloco .valor { font-size:34px; font-weight:bold; color:#12203b; margin-top:4px; }
+  .valor-bloco .extenso { font-size:12px; color:#4b5563; font-style:italic; margin-top:6px; }
+  .corpo-texto { padding:8px 26px 18px; font-size:12.5px; line-height:1.7; color:#1a1a1a; text-align:justify; }
+  .corpo-texto strong { color:#12203b; }
+  .grid { margin:0 26px 18px; border:1px solid #e4e7ee; border-radius:8px; overflow:hidden; }
+  .grid:after { content:""; display:table; clear:both; }
+  .grid .item { float:left; width:50%; padding:10px 14px; border-bottom:1px solid #e4e7ee; border-right:1px solid #e4e7ee; }
+  .grid .item.noright { border-right:none; width:49.9%; }
+  .grid .item .k { font-size:9.5px; color:#6b7280; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:3px; }
+  .grid .item .v { font-size:12.5px; font-weight:bold; color:#12203b; }
+  .assinatura-area { padding:26px 26px 10px; display:flex; justify-content:space-between; align-items:flex-end; }
+  .assinatura-linha { width:65%; text-align:center; }
+  .assinatura-linha .linha { border-top:1px solid #12203b; padding-top:6px; margin-top:36px; font-size:11px; color:#4b5563; }
+  .assinatura-linha .sub { font-size:10px; color:#9aa0aa; margin-top:2px; }
+  .local-data { font-size:11px; color:#4b5563; text-align:right; }
+  .rodape { background:#fafbfd; border-top:1px solid #e4e7ee; padding:10px 26px; display:flex; justify-content:space-between; font-size:9px; color:#9aa0aa; }
+  @media print { body{ background:#fff; } .recibo{ border-color:#12203b; } }
+</style></head>
+<body>
+<div class="recibo">
+  <div class="faixa"></div>
+  <div class="cabecalho">
+    <div>
+      <img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA" />
+      <div class="empresa-info">NFF Serviços LTDA</div>
+    </div>
+    <div class="recibo-tag">
+      <div class="titulo">RECIBO DE PAGAMENTO</div>
+      <div class="numero">Nº ${numero} · Lançamento #${(l.id||"").slice(-6)}</div>
+      <div class="status">✓ PAGO</div>
+    </div>
+  </div>
+  <div class="valor-bloco">
+    <div class="label">Valor pago</div>
+    <div class="valor">R$ ${valorFmt}</div>
+    <div class="extenso">(${extenso})</div>
+  </div>
+  <div class="corpo-texto">
+    Recebi de <strong>NFF Serviços LTDA</strong> a quantia acima referente a
+    <strong>${descricao}</strong>, dando plena e geral quitação pelo valor recebido.
+  </div>
+  <div class="grid">
+    <div class="item"><div class="k">Beneficiário / Fornecedor</div><div class="v">${beneficiario}</div></div>
+    <div class="item noright"><div class="k">Data do pagamento</div><div class="v">${dataFmt}</div></div>
+    <div class="item"><div class="k">Classificação</div><div class="v">${classificacao}</div></div>
+    <div class="item noright"><div class="k">Competência</div><div class="v">${compFmt}</div></div>
+    <div class="item" style="border-bottom:none"><div class="k">Forma de pagamento</div><div class="v">${forma}</div></div>
+    <div class="item noright" style="border-bottom:none"><div class="k">Banco / Conta</div><div class="v">${bancoConta}</div></div>
+  </div>
+  <div class="assinatura-area">
+    <div class="assinatura-linha">
+      <div class="linha">Assinatura do beneficiário</div>
+      <div class="sub">${beneficiario}</div>
+    </div>
+    <div class="local-data">Fortaleza/CE, ${dataFmt}</div>
+  </div>
+  <div class="rodape">
+    <span>Documento gerado automaticamente pelo sistema NFF ERP</span>
+    <span>Emitido em ${emissao}</span>
+  </div>
+</div>
+<script>window.onload = function(){ window.print(); };<\/script>
+</body></html>`;
+}
+
 function statusPill(status){
   const cls = status === "Pago" ? "pago" : status === "Atrasado" ? "atrasado" : status === "Pendente" ? "pendente" : "";
   return `<span class="status-pill ${cls}">${status||"—"}</span>`;
@@ -909,11 +1311,14 @@ let drePeriod = thisMonthYM();
 let dreCompetenciaPeriod = "all";
 let dreIncluirOperacional = false;
 let analisePeriod = thisMonthYM();
+let gerencialCompetencia = "all";
+let gerencialDataLanc = "";
+let gerencialBancoId = "all";
 let acessosLog = [];
 let acessosCarregando = false;
 let acessosCarregado = false;
 let reportType = "dre"; // dre | receitas | despesas | fluxo
-let filters = { tipo:"todos", periodo:"all", busca:"" };
+let filters = { tipo:"todos", periodo:"all", contaId:"all", dataDe:"", dataAte:"", busca:"" };
 let listaLancamentosFiltrada = [];
 let conciliacaoExportCache = null;
 let buscaClientes = "";
@@ -946,12 +1351,14 @@ const ICONS = {
   print: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M6 17v4h12v-4"/></svg>`,
   dre: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 3h13l3 3v15H4z"/><path d="M8 11h8M8 15h8M8 7h4"/></svg>`,
   analise: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a6 6 0 0 0-4 10.5c.6.5 1 1.3 1 2.1V16h6v-1.4c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 2Z"/></svg>`,
+  gerencial: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M3 9h18"/><path d="M7 13.5h3M7 15.8h5"/><path d="M9 21h6"/></svg>`,
   acessos: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3.2"/></svg>`,
   conciliacao: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11l2.2 2.2L16 8.5"/><path d="M9 17h7"/></svg>`,
   exportIc: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>`,
   importIc: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>`,
   edit: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
   trash: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`,
+  recibo: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>`,
 };
 
 function setView(v){ currentView = v; editingId = null; editingUserId = null; editingClienteId = null; editingFornecedorId = null; editingContaId = null; editingSaldoInicial = false; mobileNavOpen = false; render(); }
@@ -996,6 +1403,7 @@ function render(){
         ${navBtn("relatorios","dre","Relatórios")}
         <div class="nav-label">Análise</div>
         ${navBtn("analise","analise","Análise")}
+        ${navBtn("analise-gerencial","gerencial","Análise Gerencial")}
         ${authUser && authUser.email === ADMIN_EMAIL ? navBtn("acessos","acessos","Controle de Acesso") : ""}
         <div class="nav-label">Bancos</div>
         ${navBtn("conciliacao","conciliacao","Conciliação Bancária")}
@@ -1027,8 +1435,12 @@ function render(){
           <button id="btnExportBI" class="link-btn">${ICONS.exportIc} Exportar dados completos (Power BI)</button>
           ${podeEditar() ? `<input type="file" id="fileImport" accept=".json,application/json,.xlsx,.xls,.csv" style="display:none" />` : ""}
           <div class="import-hint">Backup: .json &nbsp;·&nbsp; Modelo já vem com todos os lançamentos cadastrados</div>
-          ${podeGerenciarUsuarios() ? `<button id="btnApagarLancamentos" class="link-btn" style="color:#e08a8a; margin-top:6px;">${ICONS.trash} Apagar todos os lançamentos</button>` : ""}
         </div>
+        ${podeGerenciarUsuarios() ? `
+        <div class="danger-zone">
+          <div class="danger-zone-label">⚠ Zona de risco</div>
+          <button id="btnApagarLancamentos" class="link-btn danger">${ICONS.trash} Apagar todos os lançamentos</button>
+        </div>` : ""}
         <div style="margin-top:10px;">NFF Serviços LTDA<br>Recepção · Limpeza · Portaria · Jardinagem</div>
       </div>
     </div>
@@ -1203,6 +1615,7 @@ function topbar(){
     usuarios:["Usuários","Pessoas com acesso ao programa"],
     relatorios:["Relatórios","Escolha o tipo de relatório para analisar o período"],
     analise:["Análise","Leitura automática do cenário financeiro, com pontos positivos e de atenção"],
+    "analise-gerencial":["Análise Gerencial","Relatório executivo para sócios e acionistas — "+(gerencialCompetencia==="all" ? "todas as competências" : monthLabel(gerencialCompetencia))],
     acessos:["Controle de Acesso","Histórico de entradas no sistema"],
     conciliacao:["Conciliação Bancária","Extrato de lançamentos por conta, com saldo inicial e saldo corrente"],
   };
@@ -1226,7 +1639,7 @@ function topbar(){
 function periodSelector(id, value){
   const months = getAvailableMonths();
   return `
-    <select class="period-select" id="${id}">
+    <select class="period-select" id="${id}" title="Filtra pela data em que o lançamento foi registrado">
       <option value="all" ${value==="all"?"selected":""}>Todo o período</option>
       ${months.map(m=>`<option value="${m}" ${value===m?"selected":""}>${monthLabel(m)}</option>`).join("")}
     </select>
@@ -1235,7 +1648,7 @@ function periodSelector(id, value){
 function competenciaSelector(id, value){
   const meses = getAvailableCompetencias();
   return `
-    <select class="period-select" id="${id}">
+    <select class="period-select" id="${id}" title="Filtra pelo mês a que o lançamento se refere (competência), mesmo que a data de pagamento seja outra">
       <option value="all" ${value==="all"?"selected":""}>Filtrar por Competência…</option>
       ${meses.map(m=>`<option value="${m}" ${value===m?"selected":""}>${monthLabel(m)}</option>`).join("")}
     </select>
@@ -1267,6 +1680,7 @@ function viewContent(){
   if(currentView === "usuarios") return podeGerenciarUsuarios() ? usuariosView() : acessoNegadoView();
   if(currentView === "relatorios") return relatoriosView();
   if(currentView === "analise") return analiseView();
+  if(currentView === "analise-gerencial") return analiseGerencialView();
   if(currentView === "acessos") return (authUser && authUser.email === ADMIN_EMAIL) ? acessosView() : acessoNegadoView();
   if(currentView === "conciliacao") return conciliacaoView();
   return "";
@@ -1411,7 +1825,7 @@ function dashboardView(){
         <div class="kpi-sub">${despesas.length} lançamento(s)</div>
         ${trendBadge(variD, false)}
       </div>
-      <div class="card ${saldo>=0?'acc-green':'acc-red'}">
+      <div class="card card-featured ${saldo>=0?'acc-green':'acc-red'}">
         <div class="card-top">
           <div>
             <div class="kpi-label">Saldo</div>
@@ -1543,7 +1957,7 @@ function lancamentoForm(tipo, existing){
       </div>
       <form id="lancForm" class="form-grid">
         <div class="field">
-          <label>Data</label>
+          <label class="req">Data</label>
           <input type="date" name="data" value="${l.data}" required />
         </div>
         <div class="field">
@@ -1551,7 +1965,7 @@ function lancamentoForm(tipo, existing){
           <input type="month" name="competencia" value="${l.competencia || (l.data||todayISO()).slice(0,7)}" title="Mês a que essa receita/despesa se refere, mesmo que paga em outro mês" />
         </div>
         <div class="field">
-          <label>Classificação</label>
+          <label class="req">Classificação</label>
           <select name="categoriaId" required>
             ${cats.length ? cats.map(c=>`<option value="${c.id}" ${l.categoriaId===c.id?"selected":""}>${c.nome}</option>`).join("")
               : `<option value="">Cadastre uma classificação primeiro</option>`}
@@ -1565,7 +1979,7 @@ function lancamentoForm(tipo, existing){
           </datalist>
         </div>
         <div class="field full">
-          <label>Descrição</label>
+          <label class="req">Descrição</label>
           <input type="text" name="descricao" placeholder="Ex: ${tipo==='receita' ? 'Contrato mensal de limpeza — Ed. Aurora' : 'Compra de material de limpeza'}" value="${l.descricao}" required />
         </div>
         <div class="field">
@@ -1576,7 +1990,7 @@ function lancamentoForm(tipo, existing){
           </datalist>
         </div>
         <div class="field money">
-          <label>Valor (R$)</label>
+          <label class="req">Valor (R$)</label>
           <input type="number" step="0.01" min="0" name="valor" placeholder="0,00" value="${l.valor}" required />
         </div>
         <div class="field full form-divider"><span>Pagamento</span></div>
@@ -1647,6 +2061,9 @@ function lancamentosView(){
   let list = [...state.lancamentos];
   if(filters.tipo !== "todos") list = list.filter(l=>l.tipo===filters.tipo);
   if(filters.periodo !== "all") list = list.filter(l=>l.data.slice(0,7)===filters.periodo);
+  if(filters.contaId !== "all") list = list.filter(l=>l.contaId===filters.contaId);
+  if(filters.dataDe) list = list.filter(l=>l.data >= filters.dataDe);
+  if(filters.dataAte) list = list.filter(l=>l.data <= filters.dataAte);
   if(filters.busca.trim()){
     const q = filters.busca.trim().toLowerCase();
     list = list.filter(l=> (l.descricao||"").toLowerCase().includes(q) || (l.parte||"").toLowerCase().includes(q) || catName(l.tipo,l.categoriaId).toLowerCase().includes(q));
@@ -1662,6 +2079,9 @@ function lancamentosView(){
   const filtroResumo = [
     filters.tipo !== "todos" ? (filters.tipo==="receita"?"Receitas":"Despesas") : null,
     filters.periodo !== "all" ? monthLabel(filters.periodo) : null,
+    filters.dataDe ? `data de: ${fmtDate(filters.dataDe)}` : null,
+    filters.dataAte ? `data até: ${fmtDate(filters.dataAte)}` : null,
+    filters.contaId !== "all" ? `conta: "${contaLabel(filters.contaId) || "Conta removida"}"` : null,
     filters.busca.trim() ? `busca: "${filters.busca.trim()}"` : null,
   ].filter(Boolean).join(" · ") || "todos os lançamentos, sem filtro";
 
@@ -1678,6 +2098,18 @@ function lancamentosView(){
             <option value="all" ${filters.periodo==="all"?"selected":""}>Todo o período</option>
             ${months.map(m=>`<option value="${m}" ${filters.periodo===m?"selected":""}>${monthLabel(m)}</option>`).join("")}
           </select>
+          <select id="fConta">
+            <option value="all" ${filters.contaId==="all"?"selected":""}>Todas as contas</option>
+            ${state.contasBancarias.map(c=>`<option value="${c.id}" ${filters.contaId===c.id?"selected":""}>${contaLabel(c.id)}</option>`).join("")}
+          </select>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;font-weight:700;color:var(--ink-soft);white-space:nowrap;">DATA DE</span>
+            <input id="fDataDe" type="date" value="${filters.dataDe||""}" title="Data de início" style="width:145px;" />
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;font-weight:700;color:var(--ink-soft);white-space:nowrap;">DATA ATÉ</span>
+            <input id="fDataAte" type="date" value="${filters.dataAte||""}" title="Data final" style="width:145px;" />
+          </div>
           <input id="fBusca" type="text" placeholder="Buscar por descrição, cliente/fornecedor ou classificação…" value="${filters.busca}" style="min-width:260px;" />
         </div>
         <div style="display:flex; gap:8px; flex-shrink:0;">
@@ -1703,7 +2135,10 @@ function lancamentosView(){
             <tr>
               <td class="mono">${fmtDate(l.data)}${l.competencia ? `<div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;">Comp: ${monthLabel(l.competencia)}</div>` : ""}</td>
               <td>${l.descricao||"—"}${l.parte?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${l.parte}</div>`:""}</td>
-              <td>${catName(l.tipo,l.categoriaId)}</td>
+              <td>
+                ${catName(l.tipo,l.categoriaId)}
+                ${l.subClassificacao ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:3px;">${l.subClassificacao}</div>` : ""}
+              </td>
               <td>${bancoName(l.bancoId)}${l.tipoTransacaoId?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${tipoTransacaoName(l.tipoTransacaoId)}</div>`:""}${l.contaId?`<div style="font-size:11px;color:var(--ink-soft);">${contaLabel(l.contaId)}</div>`:""}</td>
               <td><span class="tag ${l.tipo}"><span class="bar"></span>${l.tipo==="receita"?"Receita":"Despesa"}</span></td>
               <td>${statusPill(l.status)}</td>
@@ -1713,6 +2148,7 @@ function lancamentosView(){
               <td class="no-print">
                 ${podeEditar() ? `
                 <div class="row-actions">
+                  ${l.tipo==="despesa" && l.status==="Pago" ? `<button class="icon-btn" data-recibo="${l.id}" title="Imprimir Recibo">${ICONS.recibo}</button>` : ""}
                   <button class="icon-btn" data-edit="${l.id}" title="Editar">${ICONS.edit}</button>
                   <button class="icon-btn danger" data-del="${l.id}" title="Excluir">${ICONS.trash}</button>
                 </div>` : ""}
@@ -1934,7 +2370,7 @@ function contaBancariaForm(existing){
       <div class="panel-head"><h2>${existing ? "Editar conta bancária" : "Nova conta bancária"}</h2></div>
       <form id="contaForm" class="form-grid">
         <div class="field">
-          <label>Banco</label>
+          <label class="req">Banco</label>
           <select name="bancoId" required>
             ${state.bancos.length ? state.bancos.map(b=>`<option value="${b.id}" ${c.bancoId===b.id?"selected":""}>${b.nome}</option>`).join("")
               : `<option value="">Cadastre um banco acima primeiro</option>`}
@@ -2052,6 +2488,7 @@ function conciliacaoView(){
     return { l, saldoCorrente: corrente };
   });
   const saldoAtual = corrente;
+  const saldoAtualPeriodo = saldoInicial + totalEntradas - totalSaidas;
 
   conciliacaoExportCache = {
     contaLabel: contaLabel(conta.id),
@@ -2102,14 +2539,14 @@ function conciliacaoView(){
         </div>
         <div class="kpi-sub">${movs.filter(l=>l.tipo==="despesa").length} lançamento(s)</div>
       </div>
-      <div class="card ${saldoAtual>=0?'acc-green':'acc-red'}">
+      <div class="card ${saldoAtualPeriodo>=0?'acc-green':'acc-red'}">
         <div class="card-top">
           <div>
             <div class="kpi-label">Saldo atual da conta</div>
-            <div class="kpi-value" style="color:${saldoAtual>=0 ? 'var(--green)':'var(--red)'}">R$ ${fmtMoney(saldoAtual)}</div>
+            <div class="kpi-value" style="color:${saldoAtualPeriodo>=0 ? 'var(--green)':'var(--red)'}">R$ ${fmtMoney(saldoAtualPeriodo)}</div>
           </div>
         </div>
-        <div class="kpi-sub">${saldoAtual>=0 ? "Posição positiva" : "Posição negativa"}</div>
+        <div class="kpi-sub">${saldoAtualPeriodo>=0 ? "Posição positiva" : "Posição negativa"}</div>
       </div>
     </div>
 
@@ -2212,11 +2649,11 @@ function usuarioForm(existing){
       <div class="panel-head"><h2>${existing ? "Editar usuário" : "Novo usuário do programa"}</h2></div>
       <form id="userForm" class="form-grid">
         <div class="field full">
-          <label>Nome completo</label>
+          <label class="req">Nome completo</label>
           <input type="text" name="nome" placeholder="Nome do usuário" value="${u.nome}" required />
         </div>
         <div class="field">
-          <label>E-mail</label>
+          <label class="req">E-mail</label>
           <input type="email" name="email" placeholder="usuario@nff.com.br" value="${u.email}" required />
         </div>
         <div class="field">
@@ -2305,11 +2742,11 @@ function clienteForm(existing){
           </select>
         </div>
         <div class="field">
-          <label id="clienteDocLabel">${c.tipoPessoa==="juridica"?"CNPJ":"CPF"}</label>
+          <label id="clienteDocLabel" class="req">${c.tipoPessoa==="juridica"?"CNPJ":"CPF"}</label>
           <input type="text" name="documento" id="clienteDocumento" placeholder="${c.tipoPessoa==="juridica"?"00.000.000/0000-00":"000.000.000-00"}" value="${c.documento||""}" required />
         </div>
         <div class="field full">
-          <label id="clienteNomeLabel">${c.tipoPessoa==="juridica"?"Razão Social":"Nome completo"}</label>
+          <label id="clienteNomeLabel" class="req">${c.tipoPessoa==="juridica"?"Razão Social":"Nome completo"}</label>
           <input type="text" name="nome" id="clienteNome" placeholder="Nome do cliente" value="${c.nome}" required />
         </div>
         <div class="field">
@@ -2407,11 +2844,11 @@ function fornecedorForm(existing){
           </select>
         </div>
         <div class="field">
-          <label id="fornecedorDocLabel">${f.tipoPessoa==="juridica"?"CNPJ":"CPF"}</label>
+          <label id="fornecedorDocLabel" class="req">${f.tipoPessoa==="juridica"?"CNPJ":"CPF"}</label>
           <input type="text" name="documento" id="fornecedorDocumento" placeholder="${f.tipoPessoa==="juridica"?"00.000.000/0000-00":"000.000.000-00"}" value="${f.documento||""}" required />
         </div>
         <div class="field full">
-          <label id="fornecedorNomeLabel">${f.tipoPessoa==="juridica"?"Razão Social":"Nome completo"}</label>
+          <label id="fornecedorNomeLabel" class="req">${f.tipoPessoa==="juridica"?"Razão Social":"Nome completo"}</label>
           <input type="text" name="nome" id="fornecedorNome" placeholder="Nome do fornecedor" value="${f.nome}" required />
         </div>
         <div class="field">
@@ -3033,6 +3470,235 @@ function porCategoriaReceita(receitas){
     .map(c=>({nome:c.nome, valor:map[c.id]}));
 }
 
+
+function gerencialDetalhesHtml(lancamentos, titulo, cor=""){
+  const lista=[...lancamentos].sort((a,b)=>(a.data||"").localeCompare(b.data||""));
+  if(!lista.length) return `<div class="gerencial-detail"><div class="gerencial-detail-head">${titulo}</div><div class="gerencial-derived">Nenhum lançamento compõe este valor no filtro atual.</div></div>`;
+  const total=lista.reduce((a,l)=>a+Number(l.valor||0),0);
+  return `<div class="gerencial-detail">
+    <div class="gerencial-detail-head">${titulo} · ${lista.length} lançamento(s) · ${fGerencialDetalhe(total)}</div>
+    <div class="gerencial-detail-list">${lista.map(l=>{
+      const banco=(state.bancos||[]).find(b=>b.id===l.bancoId);
+      const conta=(state.contasBancarias||[]).find(c=>c.id===l.contaId);
+      return `<div class="gerencial-detail-item">
+        <div class="muted">${fmtDate(l.data)}</div>
+        <div class="desc">${escGerencial(l.descricao||"Sem descrição")}<div class="muted">${escGerencial(l.subClassificacao||"")}</div></div>
+        <div class="bank">${escGerencial(banco?.nome||"Banco não informado")}${conta?.numero?` · Conta ${escGerencial(conta.numero)}`:""}</div>
+        <div class="money" style="color:${cor||"var(--ink)"}">${fGerencialDetalhe(Number(l.valor||0))}</div>
+      </div>`;
+    }).join("")}</div>
+  </div>`;
+}
+function escGerencial(v){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));}
+function fGerencialDetalhe(v){return `${Number(v)<0?'-':''}R$ ${fmtMoney(Math.abs(Number(v)||0))}`;}
+
+function analiseGerencialView(){
+  const f = v => `${Number(v)<0?'-':''}R$ ${fmtMoney(Math.abs(Number(v)||0))}`;
+  const pct = v => `${Number(v||0).toFixed(2).replace(".",",")}%`;
+  const pct1 = v => `${Number(v||0).toFixed(1).replace(".",",")}%`;
+
+  const competencias = getAvailableCompetencias();
+  const periodo = gerencialCompetencia || "all";
+  const period = periodo !== "all" ? periodo : (competencias[0] || thisMonthYM());
+  const mesSeguinte = (()=>{ const [y,m]=period.split("-").map(Number); const d=new Date(y,m,1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; })();
+  const periodoLabel = periodo === "all" ? "TODO O PERÍODO" : monthLabel(period).toUpperCase();
+  const proximoLabel = periodo === "all" ? "PROJEÇÃO" : monthLabel(mesSeguinte).toUpperCase();
+
+  const filtroDataLanc = l => {
+    const d = l.data || "";
+    return !gerencialDataLanc || d === gerencialDataLanc;
+  };
+  const filtroBanco = l => gerencialBancoId === "all" || (l.bancoId || "") === gerencialBancoId;
+  const filtroCompetencia = l => periodo === "all" || (l.competencia || l.data.slice(0,7)) === periodo;
+  const filtroGerencial = l => filtroCompetencia(l) && filtroDataLanc(l) && filtroBanco(l);
+
+  const baseCompetencia = state.lancamentos.filter(filtroGerencial);
+  const baseResultado = baseCompetencia.filter(l => (l.tipoResultado || "Resultado") !== "Operacional");
+  const receitas = baseResultado.filter(l=>l.tipo==="receita");
+  const despesasLanc = baseResultado.filter(l=>l.tipo==="despesa");
+  const somaGrupo = grupo => despesasLanc.filter(l=>catGrupoDRE(l.categoriaId)===grupo).reduce((a,l)=>a+Number(l.valor||0),0);
+
+  const receitaBruta = receitas.reduce((a,l)=>a+Number(l.valor||0),0);
+  const impostos = somaGrupo("imposto");
+  const receitaLiquida = receitaBruta - impostos;
+  const custos = somaGrupo("custo");
+  const margemContrib = receitaLiquida - custos;
+  const despesas = somaGrupo("administrativa");
+  const resultado = margemContrib - despesas;
+  const margemContribPct = receitaBruta>0 ? margemContrib/receitaBruta*100 : 0;
+  const margemResultadoPct = receitaBruta>0 ? resultado/receitaBruta*100 : 0;
+
+  // Caixa: somente lançamentos efetivamente pagos/recebidos na competência pela DATA.
+  const caixaBase = state.lancamentos.filter(l => filtroGerencial(l) && l.status === "Pago");
+  const caixaResultado = caixaBase.filter(l => (l.tipoResultado || "Resultado") !== "Operacional");
+  const receitaRecebida = caixaResultado.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor||0),0);
+  const impostosPagos = caixaResultado.filter(l=>l.tipo==="despesa" && catGrupoDRE(l.categoriaId)==="imposto").reduce((a,l)=>a+Number(l.valor||0),0);
+  const custosPagos = caixaResultado.filter(l=>l.tipo==="despesa" && catGrupoDRE(l.categoriaId)==="custo").reduce((a,l)=>a+Number(l.valor||0),0);
+  const despesasPagas = caixaResultado.filter(l=>l.tipo==="despesa" && catGrupoDRE(l.categoriaId)==="administrativa").reduce((a,l)=>a+Number(l.valor||0),0);
+  const receitaLiquidaCaixa = receitaRecebida - impostosPagos;
+  const margemCaixa = receitaLiquidaCaixa - custosPagos;
+  const resultadoCaixa = margemCaixa - despesasPagas;
+  const diferenca = resultadoCaixa - resultado;
+
+  // Lançamentos operacionais (ex.: mútuo), separados do resultado econômico.
+  const operacionais = caixaBase.filter(l => (l.tipoResultado || "Resultado") === "Operacional");
+  const mutuo = operacionais.reduce((a,l)=>a + (l.tipo==="receita" ? Number(l.valor||0) : -Number(l.valor||0)),0);
+
+  // Saldo inicial estimado pelas contas bancárias, respeitando a data de referência de cada saldo.
+  const saldoInicial = (state.contasBancarias||[]).reduce((total,c)=>{
+    const ref = c.saldoInicialData || "0000-00-00";
+    if(periodo === "all") return total + Number(c.saldoInicial||0);
+    if(ref.slice(0,7) > period) return total;
+    const antes = state.lancamentos.filter(l=>l.contaId===c.id && l.data.slice(0,7) < period && filtroDataLanc(l) && filtroBanco(l))
+      .reduce((a,l)=>a + (l.tipo==="receita" ? Number(l.valor||0) : -Number(l.valor||0)),0);
+    return total + Number(c.saldoInicial||0) + antes;
+  },0);
+  const saldoFinal = saldoInicial + baseCompetencia
+    .reduce((a,l)=>a + (l.tipo==="receita" ? Number(l.valor||0) : -Number(l.valor||0)),0);
+
+  // Ponto de equilíbrio calculado exclusivamente a partir dos lançamentos do período.
+  const pe = margemContribPct>0 ? despesas/(margemContribPct/100) : null;
+  const coberturaPE = pe && pe>0 ? receitaBruta/pe*100 : null;
+
+  // Concentração da carteira baseada nas receitas lançadas na competência.
+  const porCliente = {};
+  receitas.forEach(l=>{ const k=(l.parte||"").trim() || "Sem cliente informado"; porCliente[k]=(porCliente[k]||0)+Number(l.valor||0); });
+  const clientes = Object.entries(porCliente).sort((a,b)=>b[1]-a[1]).map(([nome,valor])=>({nome,valor,p:receitaBruta>0?valor/receitaBruta*100:0}));
+  const topCliente = clientes[0] || null;
+  const topDoisPct = clientes.slice(0,2).reduce((a,c)=>a+c.p,0);
+
+  const recebimentoPct = receitaBruta>0 ? receitaRecebida/receitaBruta*100 : 0;
+  const positivos=[]; const atencao=[];
+  if(resultado>=0) positivos.push(`Resultado econômico de <strong>${f(resultado)}</strong>, com margem de <strong>${pct(margemResultadoPct)}</strong>.`);
+  else atencao.push(`Resultado econômico negativo de <strong>${f(resultado)}</strong> no período.`);
+  if(recebimentoPct>=80) positivos.push(`Boa conversão em caixa: <strong>${pct(recebimentoPct)}</strong> do faturamento da competência foi recebido no período de referência.`);
+  else if(receitaBruta>0) atencao.push(`Apenas <strong>${pct(recebimentoPct)}</strong> do faturamento da competência foi recebido no período de referência; acompanhar contas a receber.`);
+  if(topCliente && topCliente.p>=40) atencao.push(`O cliente <strong>${topCliente.nome}</strong> concentra <strong>${pct(topCliente.p)}</strong> da receita; há risco de concentração da carteira.`);
+  else if(clientes.length>=3) positivos.push(`Carteira com <strong>${clientes.length}</strong> clientes identificados; o maior representa <strong>${pct(topCliente.p)}</strong> da receita.`);
+  if(pe && receitaBruta>=pe) positivos.push(`Faturamento acima do ponto de equilíbrio em <strong>${f(receitaBruta-pe)}</strong>, cobrindo a estrutura de despesas do período.`);
+  else if(pe) atencao.push(`Faturamento abaixo do ponto de equilíbrio em <strong>${f(pe-receitaBruta)}</strong>; é necessário ampliar receita ou reduzir despesas.`);
+  if(operacionais.length) positivos.push(`Foram identificados <strong>${operacionais.length}</strong> lançamento(s) operacional(is), mantidos fora do resultado econômico.`);
+  if(resultadoCaixa<resultado) atencao.push(`O resultado de caixa foi <strong>${f(resultadoCaixa)}</strong>, inferior ao resultado por competência em <strong>${f(Math.abs(diferenca))}</strong>.`);
+
+  const diretivas=[];
+  if(receitaBruta>0 && pe && receitaBruta<pe) diretivas.push(`<strong>Superar o ponto de equilíbrio:</strong> priorizar novos contratos e/ou aumento de faturamento até ${f(pe)}.`);
+  if(topCliente && topCliente.p>=40) diretivas.push(`<strong>Diversificar a carteira:</strong> reduzir a dependência de ${topCliente.nome} com novos clientes relevantes.`);
+  if(recebimentoPct<80) diretivas.push(`<strong>Acelerar recebimentos:</strong> acompanhar contas a receber e prazos de pagamento dos clientes.`);
+  if(margemContribPct<30 && receitaBruta>0) diretivas.push(`<strong>Proteger margem:</strong> revisar custos classificados no grupo de custos para preservar a margem de contribuição.`);
+  if(!diretivas.length) diretivas.push(`<strong>Manter disciplina:</strong> acompanhar margem, caixa, concentração de clientes e ponto de equilíbrio nos próximos períodos.`);
+
+  const pctCell=(v,base)=>base?pct(v/base*100):"0,00%";
+
+  return `
+    <div class="gerencial-wrap">
+      <div class="gerencial-toolbar no-print">
+        <div>
+          <div class="gerencial-kicker">Grupo NFF · Uso interno / Acionistas</div>
+          <div class="gerencial-title">Análise Gerencial</div>
+          <div class="gerencial-sub">Indicadores calculados diretamente dos lançamentos do sistema.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:4px;"><label style="font-size:10px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;">Data competência</label><select id="gerencialCompetenciaSel" class="period-select"><option value="all" ${gerencialCompetencia==="all"?"selected":""}>Todas as competências</option>${competencias.map(m=>`<option value="${m}" ${m===gerencialCompetencia?"selected":""}>${monthLabel(m)}</option>`).join("")}</select></div>
+          <div style="display:flex;flex-direction:column;gap:4px;"><label style="font-size:10px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;">Data lançamento</label><input type="date" id="gerencialDataLanc" class="period-select" value="${gerencialDataLanc}" /></div>
+          <div style="display:flex;flex-direction:column;gap:4px;"><label style="font-size:10px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;">Banco</label><select id="gerencialBancoSel" class="period-select"><option value="all" ${gerencialBancoId==="all"?"selected":""}>Todos os bancos</option>${(state.bancos||[]).map(b=>`<option value="${b.id}" ${b.id===gerencialBancoId?"selected":""}>${b.nome}</option>`).join("")}</select></div>
+          <button class="btn ghost" id="btnPrintAnaliseGerencial">${ICONS.print} Imprimir / Salvar PDF</button>
+        </div>
+      </div>
+
+      <section class="gerencial-page print-area">
+        <div class="gerencial-head">
+          <div class="gerencial-brand">
+            <img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA">
+            <div><div class="brand-name">NFF Serviços LTDA</div><div class="brand-sub">RELATÓRIO GERENCIAL AOS ACIONISTAS</div></div>
+          </div>
+          <div class="gerencial-head-meta"><div class="period">${periodoLabel}</div><div class="label">Resultado econômico e financeiro</div></div>
+        </div>
+        <div class="gerencial-body">
+          <h2 class="gerencial-section-title">Visão Executiva</h2>
+          <div class="gerencial-section-sub">Valores apurados exclusivamente a partir dos lançamentos cadastrados no sistema.</div>
+          <div class="gerencial-kpis">
+            <div class="gerencial-kpi"><div class="lab">Faturamento</div><div class="val">${f(receitaBruta)}</div><div class="pct">100,00%</div></div>
+            <div class="gerencial-kpi green"><div class="lab">Margem contribuição</div><div class="val">${f(margemContrib)}</div><div class="pct">${pctCell(margemContrib,receitaBruta)}</div></div>
+            <div class="gerencial-kpi gold"><div class="lab">Despesas</div><div class="val">${f(despesas)}</div><div class="pct">${pctCell(despesas,receitaBruta)}</div></div>
+            <div class="gerencial-kpi ${resultado>=0?'green':'redsoft'}"><div class="lab">Resultado</div><div class="val">${f(resultado)}</div><div class="pct">${pctCell(resultado,receitaBruta)}</div></div>
+          </div>
+          <div class="gerencial-cols">
+            <div class="gerencial-box blue"><h3>Base competência</h3><div class="box-sub">Mês de competência dos lançamentos · clique no ▸ para ver a composição</div><table class="gerencial-table">
+              <tr><td><button class="gerencial-expand-btn" type="button" data-gerencial-detail="gc-receita"><span class="chev">▸</span></button>Receita bruta</td><td>${f(receitaBruta)}</td><td>100,00%</td></tr>
+              <tr class="gerencial-detail-row" id="gc-receita"><td colspan="3">${gerencialDetalhesHtml(receitas,"Composição da Receita bruta","var(--blue)")}</td></tr>
+              <tr><td><button class="gerencial-expand-btn" type="button" data-gerencial-detail="gc-impostos"><span class="chev">▸</span></button>Impostos</td><td>-${f(impostos)}</td><td>-${pctCell(impostos,receitaBruta)}</td></tr>
+              <tr class="gerencial-detail-row" id="gc-impostos"><td colspan="3">${gerencialDetalhesHtml(despesasLanc.filter(l=>catGrupoDRE(l.categoriaId)==="imposto"),"Composição dos Impostos","var(--gold)")}</td></tr>
+              <tr><td><button class="gerencial-expand-btn" type="button" data-gerencial-detail="gc-liquida"><span class="chev">▸</span></button>Receita líquida</td><td>${f(receitaLiquida)}</td><td>${pctCell(receitaLiquida,receitaBruta)}</td></tr>
+              <tr class="gerencial-detail-row" id="gc-liquida"><td colspan="3"><div class="gerencial-detail"><div class="gerencial-detail-head">Composição da Receita líquida</div><div class="gerencial-derived"><strong>Receita bruta</strong> ${f(receitaBruta)} &nbsp;−&nbsp; <strong>Impostos</strong> ${f(impostos)} &nbsp;=&nbsp; <strong>Receita líquida</strong> ${f(receitaLiquida)}</div></div></td></tr>
+              <tr><td><button class="gerencial-expand-btn" type="button" data-gerencial-detail="gc-custos"><span class="chev">▸</span></button>Custos</td><td>-${f(custos)}</td><td>-${pctCell(custos,receitaBruta)}</td></tr>
+              <tr class="gerencial-detail-row" id="gc-custos"><td colspan="3">${gerencialDetalhesHtml(despesasLanc.filter(l=>catGrupoDRE(l.categoriaId)==="custo"),"Composição dos Custos","var(--red)")}</td></tr>
+              <tr class="strong green"><td><button class="gerencial-expand-btn" type="button" data-gerencial-detail="gc-margem"><span class="chev">▸</span></button>MARGEM CONTRIB.</td><td>${f(margemContrib)}</td><td>${pctCell(margemContrib,receitaBruta)}</td></tr>
+              <tr class="gerencial-detail-row" id="gc-margem"><td colspan="3"><div class="gerencial-detail"><div class="gerencial-detail-head">Composição da Margem de Contribuição</div><div class="gerencial-derived"><strong>Receita líquida</strong> ${f(receitaLiquida)} &nbsp;−&nbsp; <strong>Custos</strong> ${f(custos)} &nbsp;=&nbsp; <strong>Margem de contribuição</strong> ${f(margemContrib)}</div></div></td></tr>
+              <tr><td><button class="gerencial-expand-btn" type="button" data-gerencial-detail="gc-despesas"><span class="chev">▸</span></button>Despesas</td><td>-${f(despesas)}</td><td>-${pctCell(despesas,receitaBruta)}</td></tr>
+              <tr class="gerencial-detail-row" id="gc-despesas"><td colspan="3">${gerencialDetalhesHtml(despesasLanc.filter(l=>catGrupoDRE(l.categoriaId)==="administrativa"),"Composição das Despesas","var(--gold)")}</td></tr>
+              <tr class="total ${resultado>=0?'green':'red'}"><td><button class="gerencial-expand-btn" type="button" data-gerencial-detail="gc-resultado"><span class="chev">▸</span></button>RESULTADO</td><td>${f(resultado)}</td><td>${pctCell(resultado,receitaBruta)}</td></tr>
+              <tr class="gerencial-detail-row" id="gc-resultado"><td colspan="3"><div class="gerencial-detail"><div class="gerencial-detail-head">Composição do Resultado</div><div class="gerencial-derived"><strong>Margem de contribuição</strong> ${f(margemContrib)} &nbsp;−&nbsp; <strong>Despesas</strong> ${f(despesas)} &nbsp;=&nbsp; <strong>Resultado</strong> ${f(resultado)}</div></div></td></tr>
+            </table></div>
+            <div class="gerencial-box redsoft"><h3>Base caixa</h3><div class="box-sub">Lançamentos com status Pago e data no período</div><table class="gerencial-table">
+              <tr><td>Receita recebida</td><td>${f(receitaRecebida)}</td><td>100,00%</td></tr>
+              <tr><td>Impostos pagos</td><td>-${f(impostosPagos)}</td><td>-${pctCell(impostosPagos,receitaRecebida)}</td></tr>
+              <tr><td>Receita líquida</td><td>${f(receitaLiquidaCaixa)}</td><td>${pctCell(receitaLiquidaCaixa,receitaRecebida)}</td></tr>
+              <tr><td>Custos pagos</td><td>-${f(custosPagos)}</td><td>-${pctCell(custosPagos,receitaRecebida)}</td></tr>
+              <tr class="strong red"><td>MARGEM CONTRIB.</td><td>${f(margemCaixa)}</td><td>${pctCell(margemCaixa,receitaRecebida)}</td></tr>
+              <tr><td>Despesas pagas</td><td>-${f(despesasPagas)}</td><td>-${pctCell(despesasPagas,receitaRecebida)}</td></tr>
+              <tr class="total ${resultadoCaixa>=0?'green':'red'}"><td>RESULTADO</td><td>${f(resultadoCaixa)}</td><td>${pctCell(resultadoCaixa,receitaRecebida)}</td></tr>
+            </table></div>
+          </div>
+          <div class="gerencial-wide"><h3>Comparação dos resultados</h3><div class="gerencial-compare">
+            <div class="item"><div class="lab">Competência</div><div class="val">${f(resultado)} | ${pctCell(resultado,receitaBruta)}</div></div>
+            <div class="item"><div class="lab">Caixa</div><div class="val ${resultadoCaixa>=0?'':'red'}">${f(resultadoCaixa)} | ${pctCell(resultadoCaixa,receitaRecebida)}</div></div>
+            <div class="item"><div class="lab">Diferença</div><div class="val gold">${f(diferenca)} | efeito do descasamento entre competência e caixa</div></div>
+          </div></div>
+          <div class="gerencial-wide"><h3>Conciliação do caixa</h3><div class="gerencial-cash">
+            <div class="cash-item"><div class="lab">Saldo inicial</div><div class="val">${f(saldoInicial)}</div></div><div class="plus">+</div>
+            <div class="cash-item"><div class="lab">Resultado caixa</div><div class="val">${f(resultadoCaixa)}</div></div><div class="plus">+</div>
+            <div class="cash-item"><div class="lab">Operacional líquido</div><div class="val">${f(mutuo)}</div></div><div class="plus">=</div>
+            <div class="cash-item"><div class="lab">Saldo final estimado</div><div class="val">${f(saldoFinal)}</div></div>
+          </div><div class="gerencial-foot" style="border-top:0;margin-top:9px;padding-top:0;"><span>O saldo considera os saldos iniciais cadastrados e os movimentos por conta até o período selecionado.</span><span>Fonte: lançamentos do sistema</span></div></div>
+          <div class="gerencial-synthesis"><h3>Síntese para os acionistas</h3><ul>
+            ${positivos.slice(0,3).map(x=>`<li><strong>Ponto positivo:</strong> ${x}</li>`).join("")}
+            ${atencao.slice(0,3).map(x=>`<li><strong>Ponto de atenção:</strong> ${x}</li>`).join("")}
+          </ul></div>
+        </div>
+      </section>
+
+      <section class="gerencial-page print-area">
+        <div class="gerencial-head"><div class="gerencial-brand"><img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA"><div><div class="brand-name">NFF Serviços LTDA</div><div class="brand-sub">ANÁLISE COMERCIAL E PONTO DE EQUILÍBRIO</div></div></div><div class="gerencial-head-meta"><div class="period">${proximoLabel}</div><div class="label">Projeção baseada no período selecionado</div></div></div>
+        <div class="gerencial-body">
+          <h2 class="gerencial-section-title">Página Comercial</h2>
+          <div class="gerencial-section-sub">Indicadores comerciais calculados a partir dos lançamentos da competência ${periodoLabel}.</div>
+          <div class="gerencial-kpis" style="grid-template-columns:repeat(3,1fr);">
+            <div class="gerencial-kpi"><div class="lab">Ponto de equilíbrio</div><div class="val">${pe===null?'—':f(pe)}</div><div class="pct">Estrutura atual</div></div>
+            <div class="gerencial-kpi gold"><div class="lab">Faturamento atual</div><div class="val">${f(receitaBruta)}</div><div class="pct">${pe ? pct1(coberturaPE)+" do PE" : "Sem PE calculável"}</div></div>
+            <div class="gerencial-kpi green"><div class="lab">Margem contribuição</div><div class="val">${pct1(margemContribPct)}</div><div class="pct">Base dos lançamentos</div></div>
+          </div>
+          <div class="gerencial-wide"><h3>Evolução do ponto de equilíbrio</h3><table class="gerencial-table">
+            <tr><td>Despesas administrativas do período</td><td>${f(despesas)}</td><td></td></tr>
+            <tr><td>Margem de contribuição observada</td><td>${pct1(margemContribPct)}</td><td></td></tr>
+            <tr class="strong"><td>Ponto de equilíbrio calculado</td><td>${pe===null?'—':f(pe)}</td><td></td></tr>
+            <tr class="green"><td>Faturamento do período</td><td>${f(receitaBruta)}</td><td>${pe ? pct1(coberturaPE)+" do PE" : ""}</td></tr>
+          </table></div>
+          <div class="gerencial-wide"><h3>Concentração da carteira — ${periodoLabel}</h3><div class="gerencial-section-sub" style="margin-bottom:12px;">Participação dos clientes conforme as receitas lançadas na competência selecionada.</div>
+            <div class="gerencial-bars">${clientes.slice(0,8).map(c=>`<div class="gerencial-bar-row"><div class="gerencial-bar-name">${c.nome}</div><div class="gerencial-bar-track"><div class="gerencial-bar-fill" style="width:${Math.min(100,c.p)}%;"></div></div><div class="gerencial-bar-value">${pct(c.p)} | ${f(c.valor)}</div></div>`).join("") || `<div class="empty-state">Nenhuma receita com cliente identificado.</div>`}</div>
+            ${clientes.length>=2?`<div class="gerencial-foot" style="border-top:0;margin-top:8px;padding-top:0;"><span>Dois maiores clientes: <strong>${pct(topDoisPct)}</strong> da receita.</span><span>Maior cliente: <strong>${topCliente?topCliente.nome:'—'}</strong></span></div>`:""}
+          </div>
+          <div class="gerencial-split">
+            <div class="gerencial-box blue"><h3>Leitura operacional</h3><table class="gerencial-table"><tr><td>Receita recebida / faturamento</td><td>${pct(recebimentoPct)}</td><td></td></tr><tr><td>Lançamentos operacionais</td><td>${operacionais.length}</td><td>${f(mutuo)}</td></tr><tr class="strong"><td>Resultado de caixa</td><td>${f(resultadoCaixa)}</td><td></td></tr></table></div>
+            <div class="gerencial-box goldsoft"><h3>Cenário de cobertura</h3><table class="gerencial-table"><tr class="green"><td>Faturamento atual</td><td>${f(receitaBruta)}</td><td></td></tr><tr><td>Ponto de equilíbrio</td><td>${pe===null?'—':f(pe)}</td><td></td></tr><tr class="strong ${pe && receitaBruta>=pe?'green':'red'}"><td>${pe && receitaBruta>=pe?'Excedente sobre PE':'Necessidade até PE'}</td><td>${pe===null?'—':f(Math.abs(receitaBruta-pe))}</td><td></td></tr></table></div>
+          </div>
+          <div class="gerencial-directives"><h3>Diretrizes comerciais para ${proximoLabel}</h3><ol>${diretivas.map(d=>`<li>${d}</li>`).join("")}</ol></div>
+          <div class="gerencial-foot"><span>Grupo NFF | Análise Gerencial — ${periodoLabel}</span><span>Valores calculados a partir dos lançamentos do sistema</span></div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
 /* ---------------------------------------------------------
    HANDLERS
 --------------------------------------------------------- */
@@ -3066,6 +3732,21 @@ function attachHandlers(){
   if(dreIncluirOperacionalChk) dreIncluirOperacionalChk.addEventListener("change", e=>{ dreIncluirOperacional = e.target.checked; render(); });
   const analiseSel = document.getElementById("analisePeriodSel");
   if(analiseSel) analiseSel.addEventListener("change", e=>{ analisePeriod = e.target.value; render(); });
+  const gerencialCompetenciaSel = document.getElementById("gerencialCompetenciaSel");
+  if(gerencialCompetenciaSel) gerencialCompetenciaSel.addEventListener("change", e=>{ gerencialCompetencia = e.target.value; render(); });
+  const gerencialDataLancEl = document.getElementById("gerencialDataLanc");
+  if(gerencialDataLancEl) gerencialDataLancEl.addEventListener("change", e=>{ gerencialDataLanc = e.target.value; render(); });
+  const gerencialBancoSel = document.getElementById("gerencialBancoSel");
+  if(gerencialBancoSel) gerencialBancoSel.addEventListener("change", e=>{ gerencialBancoId = e.target.value; render(); });
+  document.querySelectorAll("[data-gerencial-detail]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id=btn.getAttribute("data-gerencial-detail");
+      const row=document.getElementById(id);
+      if(!row) return;
+      const open=row.classList.toggle("open");
+      btn.classList.toggle("open",open);
+    });
+  });
   const btnAtualizarAcessos = document.getElementById("btnAtualizarAcessos");
   if(btnAtualizarAcessos) btnAtualizarAcessos.addEventListener("click", ()=>{ acessosCarregado = false; carregarAcessos(); });
   document.querySelectorAll("[data-report]").forEach(el=>{
@@ -3073,6 +3754,8 @@ function attachHandlers(){
   });
   const btnPrintReport = document.getElementById("btnPrintReport");
   if(btnPrintReport) btnPrintReport.addEventListener("click", ()=> window.print());
+  const btnPrintAnaliseGerencial = document.getElementById("btnPrintAnaliseGerencial");
+  if(btnPrintAnaliseGerencial) btnPrintAnaliseGerencial.addEventListener("click", ()=> window.print());
   const btnPrintLancamentos = document.getElementById("btnPrintLancamentos");
   if(btnPrintLancamentos) btnPrintLancamentos.addEventListener("click", ()=> window.print());
   const btnExportExcelLancamentos = document.getElementById("btnExportExcelLancamentos");
@@ -3482,6 +4165,12 @@ function importSpreadsheet(file){
   if(fTipo) fTipo.addEventListener("change", e=>{ filters.tipo = e.target.value; render(); });
   const fPeriodo = document.getElementById("fPeriodo");
   if(fPeriodo) fPeriodo.addEventListener("change", e=>{ filters.periodo = e.target.value; render(); });
+  const fConta = document.getElementById("fConta");
+  if(fConta) fConta.addEventListener("change", e=>{ filters.contaId = e.target.value; render(); });
+  const fDataDe = document.getElementById("fDataDe");
+  if(fDataDe) fDataDe.addEventListener("change", e=>{ filters.dataDe = e.target.value; render(); });
+  const fDataAte = document.getElementById("fDataAte");
+  if(fDataAte) fDataAte.addEventListener("change", e=>{ filters.dataAte = e.target.value; render(); });
   const fBusca = document.getElementById("fBusca");
   if(fBusca){
     fBusca.addEventListener("input", e=>{ filters.busca = e.target.value; render(); preserveFocus("fBusca"); });
@@ -3541,6 +4230,16 @@ function importSpreadsheet(file){
 
   document.querySelectorAll("[data-edit]").forEach(el=>{
     el.addEventListener("click", ()=>{ editingId = el.getAttribute("data-edit"); render(); });
+  });
+  document.querySelectorAll("[data-recibo]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const l = state.lancamentos.find(x=>x.id===el.getAttribute("data-recibo"));
+      if(!l) return;
+      const janela = window.open("", "_blank");
+      if(!janela){ alert("Não foi possível abrir a janela de impressão. Verifique se o bloqueador de pop-ups do navegador está desativado para este site."); return; }
+      janela.document.write(reciboDespesaHTML(l));
+      janela.document.close();
+    });
   });
   document.querySelectorAll("[data-del]").forEach(el=>{
     el.addEventListener("click", async ()=>{
