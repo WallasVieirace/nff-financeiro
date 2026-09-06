@@ -100,27 +100,6 @@
     padding:16px 22px 20px; font-size:11px; color:rgba(255,255,255,.32);
     border-top:1px solid rgba(255,255,255,.08);
   }
-  .backup-actions{ display:flex; flex-direction:column; gap:4px; }
-  .link-btn{
-    all:unset; box-sizing:border-box; cursor:pointer; display:flex; align-items:center; gap:7px;
-    font-size:11.5px; font-weight:500; color:rgba(255,255,255,.55);
-    padding:6px 2px; transition:color .12s;
-  }
-  .link-btn:hover{ color:#fff; }
-  .link-btn.danger{ color:#e08a8a; }
-  .link-btn.danger:hover{ color:#ff9b9b; }
-  .import-hint{ font-size:10px; color:rgba(255,255,255,.3); padding:4px 2px 0; line-height:1.4; }
-
-  .danger-zone{
-    margin-top:12px; padding:10px 12px; border-radius:10px;
-    background:rgba(201,76,76,.1); border:1px solid rgba(201,76,76,.3);
-  }
-  .danger-zone-label{
-    font-size:9.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-    color:#e08a8a; margin-bottom:6px;
-  }
-  .danger-zone .link-btn{ padding:2px; }
-
   .main{ flex:1; min-width:0; display:flex; flex-direction:column; }
 
   .topbar{
@@ -141,6 +120,43 @@
     font-family:'IBM Plex Mono', monospace; font-size:12.5px;
     border:1px solid var(--paper-line); background:var(--paper);
     padding:8px 12px; border-radius:8px; color:var(--ink); cursor:pointer;
+  }
+
+  /* menu de dados & backup (topbar) */
+  .settings-menu-wrap{ position:relative; }
+  .settings-trigger{
+    all:unset; box-sizing:border-box; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    width:38px; height:38px; border-radius:9px; border:1px solid var(--paper-line);
+    background:var(--paper); color:var(--ink); transition:background .12s, color .12s, border-color .12s;
+  }
+  .settings-trigger:hover, .settings-trigger.active{ background:var(--navy-900); color:#fff; border-color:var(--navy-900); }
+  .settings-dropdown{
+    position:absolute; top:calc(100% + 8px); right:0; width:290px;
+    background:var(--card); border:1px solid var(--paper-line); border-radius:12px;
+    box-shadow:0 10px 30px -10px rgba(13,22,38,.28), 0 2px 8px rgba(13,22,38,.08);
+    padding:14px; z-index:70;
+  }
+  .settings-dropdown .sd-label{
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-soft); margin-bottom:8px; padding:0 6px;
+  }
+  .settings-dropdown .sd-item{
+    all:unset; box-sizing:border-box; display:flex; align-items:center; gap:8px; width:100%;
+    cursor:pointer; font-size:13px; font-weight:500; color:var(--ink); padding:9px 6px; border-radius:8px;
+  }
+  .settings-dropdown .sd-item:hover{ background:var(--paper); }
+  .settings-dropdown .sd-hint{ font-size:10.5px; color:var(--ink-soft); padding:4px 6px 2px; line-height:1.4; }
+  .settings-dropdown .sd-divider{ height:1px; background:var(--paper-line); margin:10px 0; }
+  .settings-dropdown .sd-danger{
+    margin-top:2px; padding:8px 8px 4px; border-radius:9px; background:var(--red-soft); border:1px solid rgba(201,76,76,.25);
+  }
+  .settings-dropdown .sd-danger-label{
+    font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--red); margin-bottom:2px; padding:0 6px;
+  }
+  .settings-dropdown .sd-danger .sd-item{ color:var(--red); }
+  .settings-dropdown .sd-danger .sd-item:hover{ background:rgba(201,76,76,.14); }
+  @media (max-width:880px){
+    .settings-dropdown{ right:-8px; width:260px; }
   }
 
   .content{ padding:28px 34px 60px; flex:1; }
@@ -458,7 +474,9 @@
     .mobile-menu-btn{ display:flex; }
     .cards-row, .grid-2, .cat-cols, .form-grid{ grid-template-columns:1fr; }
     .content{ padding:20px; }
-    .topbar{ padding:16px 20px; }
+    .topbar{ padding:16px 20px; flex-wrap:wrap; row-gap:10px; }
+    .topbar-right{ flex-wrap:wrap; width:100%; }
+    .topbar-right .period-select{ flex:1; min-width:140px; }
   }
 
 
@@ -1337,6 +1355,7 @@ let editingClienteId = null;
 let editingFornecedorId = null;
 let editingContaId = null;
 let mobileNavOpen = false;
+let settingsMenuOpen = false;
 
 const ICONS = {
   dashboard: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`,
@@ -1359,9 +1378,23 @@ const ICONS = {
   edit: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
   trash: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`,
   recibo: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>`,
+  gear: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.4-2.4 1a7.7 7.7 0 0 0-1.7-1L15 3.5h-4l-.3 2.6a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.4-1c.5.4 1.1.75 1.7 1l.3 2.6h4l.3-2.6c.6-.25 1.2-.6 1.7-1l2.4 1 2-3.4Z"/></svg>`,
 };
 
-function setView(v){ currentView = v; editingId = null; editingUserId = null; editingClienteId = null; editingFornecedorId = null; editingContaId = null; editingSaldoInicial = false; mobileNavOpen = false; render(); }
+function setView(v){ currentView = v; editingId = null; editingUserId = null; editingClienteId = null; editingFornecedorId = null; editingContaId = null; editingSaldoInicial = false; mobileNavOpen = false; settingsMenuOpen = false; render(); }
+
+// fecha o menu de "Dados & backup" ao clicar fora dele — listener único (não reanexado
+// a cada render) porque fica no document, que nunca é substituído pelo innerHTML da UI.
+let settingsMenuDocListenerBound = false;
+function ensureSettingsMenuDocListener(){
+  if(settingsMenuDocListenerBound) return;
+  settingsMenuDocListenerBound = true;
+  document.addEventListener("click", ()=>{
+    if(!settingsMenuOpen) return;
+    settingsMenuOpen = false;
+    render();
+  });
+}
 
 /* ---------------------------------------------------------
    RENDER PRINCIPAL
@@ -1428,19 +1461,6 @@ function render(){
           ${syncError ? "Sem sincronização" : (savingNow ? "Salvando…" : "Sincronizado")}
         </div>
         <div class="last-updated">${lastUpdated ? "Última atualização: "+lastUpdated.toLocaleString('pt-BR') : "Aguardando primeira sincronização…"}</div>
-        <div class="backup-actions">
-          <button id="btnExport" class="link-btn">${ICONS.exportIc} Exportar dados</button>
-          ${podeEditar() ? `<button id="btnImport" class="link-btn">${ICONS.importIc} Importar dados</button>` : ""}
-          <button id="btnTemplate" class="link-btn">${ICONS.exportIc} Baixar modelo de planilha</button>
-          <button id="btnExportBI" class="link-btn">${ICONS.exportIc} Exportar dados completos (Power BI)</button>
-          ${podeEditar() ? `<input type="file" id="fileImport" accept=".json,application/json,.xlsx,.xls,.csv" style="display:none" />` : ""}
-          <div class="import-hint">Backup: .json &nbsp;·&nbsp; Modelo já vem com todos os lançamentos cadastrados</div>
-        </div>
-        ${podeGerenciarUsuarios() ? `
-        <div class="danger-zone">
-          <div class="danger-zone-label">⚠ Zona de risco</div>
-          <button id="btnApagarLancamentos" class="link-btn danger">${ICONS.trash} Apagar todos os lançamentos</button>
-        </div>` : ""}
         <div style="margin-top:10px;">NFF Serviços LTDA<br>Recepção · Limpeza · Portaria · Jardinagem</div>
       </div>
     </div>
@@ -1631,6 +1651,10 @@ function topbar(){
       <div class="topbar-right">
         ${currentView === "dashboard" ? periodSelector("dashPeriodSel", dashPeriod) : ""}
         ${currentView === "dashboard" ? competenciaSelector("dashCompetenciaSel", dashCompetenciaPeriod) : ""}
+        <div class="settings-menu-wrap" id="settingsMenuWrap">
+          <button class="settings-trigger ${settingsMenuOpen?'active':''}" id="btnSettingsMenu" title="Dados e backup" aria-label="Dados e backup">${ICONS.gear}</button>
+          ${settingsMenuOpen ? settingsMenu() : ""}
+        </div>
       </div>
     </div>
   `;
@@ -1652,6 +1676,26 @@ function competenciaSelector(id, value){
       <option value="all" ${value==="all"?"selected":""}>Filtrar por Competência…</option>
       ${meses.map(m=>`<option value="${m}" ${value===m?"selected":""}>${monthLabel(m)}</option>`).join("")}
     </select>
+  `;
+}
+
+function settingsMenu(){
+  return `
+    <div class="settings-dropdown" id="settingsDropdown">
+      <div class="sd-label">Dados &amp; backup</div>
+      <button class="sd-item" id="btnExport">${ICONS.exportIc} Exportar dados</button>
+      ${podeEditar() ? `<button class="sd-item" id="btnImport">${ICONS.importIc} Importar dados</button>` : ""}
+      <button class="sd-item" id="btnTemplate">${ICONS.exportIc} Baixar modelo de planilha</button>
+      <button class="sd-item" id="btnExportBI">${ICONS.exportIc} Exportar dados completos (Power BI)</button>
+      ${podeEditar() ? `<input type="file" id="fileImport" accept=".json,application/json,.xlsx,.xls,.csv" style="display:none" />` : ""}
+      <div class="sd-hint">Backup: .json &nbsp;·&nbsp; Modelo já vem com todos os lançamentos cadastrados</div>
+      ${podeGerenciarUsuarios() ? `
+      <div class="sd-divider"></div>
+      <div class="sd-danger">
+        <div class="sd-danger-label">⚠ Zona de risco</div>
+        <button class="sd-item" id="btnApagarLancamentos">${ICONS.trash} Apagar todos os lançamentos</button>
+      </div>` : ""}
+    </div>
   `;
 }
 
@@ -3715,6 +3759,12 @@ function attachHandlers(){
   if(btnMobileMenu) btnMobileMenu.addEventListener("click", ()=>{ mobileNavOpen = !mobileNavOpen; render(); });
   const mobileOverlay = document.getElementById("mobileOverlay");
   if(mobileOverlay) mobileOverlay.addEventListener("click", ()=>{ mobileNavOpen = false; render(); });
+
+  const btnSettingsMenu = document.getElementById("btnSettingsMenu");
+  if(btnSettingsMenu) btnSettingsMenu.addEventListener("click", ()=>{ settingsMenuOpen = !settingsMenuOpen; render(); });
+  const settingsMenuWrap = document.getElementById("settingsMenuWrap");
+  if(settingsMenuWrap) settingsMenuWrap.addEventListener("click", e=> e.stopPropagation());
+  ensureSettingsMenuDocListener();
 
   const sel = document.getElementById("dashPeriodSel");
   if(sel) sel.addEventListener("change", e=>{ dashPeriod = e.target.value; render(); });
