@@ -1397,28 +1397,178 @@ function ensureSettingsMenuDocListener(){
 }
 
 /* ---------------------------------------------------------
+   MOTOR DE RE-RENDER PARCIAL (morph)
+   -----------------------------------------------------------
+   A versão original deste arquivo substitui `root.innerHTML` inteiro
+   a cada mudança de estado — simples, mas destrói e recria todo o DOM
+   a cada clique/tecla (por isso existia o hack preserveFocus() nos
+   campos de busca). Aqui, `renderInto(root, html)` faz o mesmo papel
+   de `root.innerHTML = html`, mas em vez de substituir tudo, compara
+   a árvore atual com a nova e aplica só as diferenças (mesma ideia do
+   morphdom): nós iguais na mesma posição são reaproveitados — o que
+   preserva foco, seleção de texto (cursor) e posição de scroll — e só
+   o que realmente mudou é criado/removido/atualizado.
+
+   Isso NÃO exige tocar nas ~100 funções de view (dashboardView,
+   lancamentosView, etc.) — elas continuam retornando strings de HTML
+   exatamente como antes. Só o "commit" final na tela muda.
+--------------------------------------------------------- */
+
+// listeners "vivos": como os nós de DOM agora persistem entre renders
+// (em vez de serem recriados do zero), attachHandlers() pode ser chamado
+// várias vezes sobre o MESMO elemento. on() evita empilhar handlers
+// duplicados removendo o anterior (por tipo de evento) antes de anexar o novo.
+const _boundHandlers = new WeakMap();
+function on(el, type, handler){
+  if(!el) return;
+  let map = _boundHandlers.get(el);
+  if(!map){ map = {}; _boundHandlers.set(el, map); }
+  if(map[type]) el.removeEventListener(type, map[type]);
+  el.addEventListener(type, handler);
+  map[type] = handler;
+}
+
+// converte uma string de HTML num DocumentFragment de nós já pertencentes
+// ao documento atual (via <template>), prontos para morph/inserção.
+function parseHTMLFragment(html){
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  return tpl.content;
+}
+
+// sincroniza o estado "vivo" de um campo de formulário (valor digitado,
+// seleção) que pode ter divergido do atributo original no HTML — e evita
+// sobrescrever o campo que o usuário está editando neste exato momento.
+function morphFormState(fromEl, toEl){
+  const tag = fromEl.tagName;
+  const isActive = document.activeElement === fromEl;
+  if(tag === "INPUT"){
+    const type = (fromEl.getAttribute("type")||"text").toLowerCase();
+    if(type === "checkbox" || type === "radio"){
+      if(fromEl.checked !== toEl.checked) fromEl.checked = toEl.checked;
+    } else if(!isActive && fromEl.value !== toEl.value){
+      fromEl.value = toEl.value;
+    }
+  } else if(tag === "TEXTAREA"){
+    if(!isActive && fromEl.value !== toEl.value) fromEl.value = toEl.value;
+  } else if(tag === "SELECT"){
+    if(!isActive && fromEl.value !== toEl.value) fromEl.value = toEl.value;
+  }
+}
+
+function morphAttributes(fromEl, toEl){
+  const toRemove = [];
+  for(let i=0; i<fromEl.attributes.length; i++){
+    const name = fromEl.attributes[i].name;
+    if(!toEl.hasAttribute(name)) toRemove.push(name);
+  }
+  toRemove.forEach(name=> fromEl.removeAttribute(name));
+  for(let i=0; i<toEl.attributes.length; i++){
+    const { name, value } = toEl.attributes[i];
+    if(fromEl.getAttribute(name) !== value) fromEl.setAttribute(name, value);
+  }
+  morphFormState(fromEl, toEl);
+}
+
+function morphChildren(fromParent, toParent){
+  let fromChild = fromParent.firstChild;
+  let toChild = toParent.firstChild;
+  while(fromChild && toChild){
+    const nextFrom = fromChild.nextSibling;
+    const nextTo = toChild.nextSibling;
+    morphNode(fromChild, toChild, fromParent);
+    fromChild = nextFrom;
+    toChild = nextTo;
+  }
+  while(fromChild){
+    const next = fromChild.nextSibling;
+    fromParent.removeChild(fromChild);
+    fromChild = next;
+  }
+  while(toChild){
+    const next = toChild.nextSibling;
+    fromParent.appendChild(toChild);
+    toChild = next;
+  }
+}
+
+// nomes de atributo que este app usa para "identidade" de um elemento — é neles
+// que attachHandlers() se baseia (document.getElementById / querySelectorAll("[data-x]"))
+// para anexar listeners.
+function identityAttrNames(el){
+  const names = [];
+  for(let i=0; i<el.attributes.length; i++){
+    const name = el.attributes[i].name;
+    if(name === "id" || name.indexOf("data-") === 0) names.push(name);
+  }
+  return names;
+}
+
+// true se o CONJUNTO de atributos de identidade mudou entre os dois nós (um
+// atributo apareceu ou sumiu) — mudar só o VALOR de um data-* é seguro (todo
+// handler deste app lê o valor atual via getAttribute() no momento do clique,
+// nunca captura o valor no instante em que o listener foi anexado).
+function identityDiffers(fromEl, toEl){
+  const a = identityAttrNames(fromEl), b = identityAttrNames(toEl);
+  if(a.length !== b.length) return true;
+  return a.some(name => !toEl.hasAttribute(name));
+}
+
+function morphNode(fromNode, toNode, parent){
+  if(fromNode.nodeType !== toNode.nodeType || fromNode.nodeName !== toNode.nodeName){
+    parent.replaceChild(toNode, fromNode);
+    return;
+  }
+  if(fromNode.nodeType === Node.TEXT_NODE || fromNode.nodeType === Node.COMMENT_NODE){
+    if(fromNode.nodeValue !== toNode.nodeValue) fromNode.nodeValue = toNode.nodeValue;
+    return;
+  }
+  if(fromNode.nodeType !== Node.ELEMENT_NODE) return;
+  // Um nó cujo atributo de identidade (id ou data-*) apareceu/sumiu mudou de
+  // "papel" entre um render e outro (ex.: uma linha da tabela que tinha
+  // data-edit="X" e na nova lista não representa mais nenhum lançamento).
+  // Reaproveitar o mesmo nó em vez de recriá-lo deixaria um listener "zumbi"
+  // preso a ele — anexado quando ele ainda tinha o atributo antigo, e que o
+  // attachHandlers() do render atual não tem mais como encontrar/substituir
+  // (a busca por seletor não bate mais nesse nó). Por segurança, força a
+  // recriação nesses casos, mesmo custando um pouco do ganho de performance.
+  if(identityDiffers(fromNode, toNode)){
+    parent.replaceChild(toNode, fromNode);
+    return;
+  }
+  morphAttributes(fromNode, toNode);
+  morphChildren(fromNode, toNode);
+}
+
+// substitui `container.innerHTML = html` por uma atualização "morfada"
+function renderInto(container, html){
+  const newFragment = parseHTMLFragment(html);
+  morphChildren(container, newFragment);
+}
+
+/* ---------------------------------------------------------
    RENDER PRINCIPAL
 --------------------------------------------------------- */
 function render(){
   const root = document.getElementById("root");
 
   if(!FIREBASE_READY){
-    root.innerHTML = setupScreen();
+    renderInto(root, setupScreen());
     return;
   }
 
   if(!authReady){
-    root.innerHTML = `<div class="auth-screen"><div class="auth-loading">Carregando…</div></div>`;
+    renderInto(root, `<div class="auth-screen"><div class="auth-loading">Carregando…</div></div>`);
     return;
   }
 
   if(!authUser){
-    root.innerHTML = authView === "esqueci" ? forgotPasswordScreen() : loginScreen();
+    renderInto(root, authView === "esqueci" ? forgotPasswordScreen() : loginScreen());
     attachAuthHandlers();
     return;
   }
 
-  root.innerHTML = `
+  renderInto(root, `
     <div class="mobile-overlay ${mobileNavOpen?'show':''}" id="mobileOverlay"></div>
     <div class="sidebar ${mobileNavOpen?'mobile-open':''}">
       <div class="sidebar-logo">
@@ -1468,7 +1618,7 @@ function render(){
       ${topbar()}
       <div class="content">${syncError ? `<div class="banner err-banner no-print">${syncError}</div>` : ""}${banner ? `<div class="banner ok no-print">${banner}</div>` : ""}${viewContent()}</div>
     </div>
-  `;
+  `);
   attachHandlers();
 }
 
@@ -1572,7 +1722,7 @@ function forgotPasswordScreen(){
 function attachAuthHandlers(){
   const loginForm = document.getElementById("loginForm");
   if(loginForm){
-    loginForm.addEventListener("submit", async e=>{
+    on(loginForm, "submit", async e=>{
       e.preventDefault();
       const fd = new FormData(loginForm);
       const email = String(fd.get("email")||"").trim();
@@ -1589,16 +1739,16 @@ function attachAuthHandlers(){
     });
   }
   const btnEsqueciSenha = document.getElementById("btnEsqueciSenha");
-  if(btnEsqueciSenha) btnEsqueciSenha.addEventListener("click", ()=>{
+  if(btnEsqueciSenha) on(btnEsqueciSenha, "click", ()=>{
     authView = "esqueci"; authError = null; authMsg = null; render();
   });
   const btnVoltarLogin = document.getElementById("btnVoltarLogin");
-  if(btnVoltarLogin) btnVoltarLogin.addEventListener("click", ()=>{
+  if(btnVoltarLogin) on(btnVoltarLogin, "click", ()=>{
     authView = "login"; authError = null; authMsg = null; render();
   });
   const forgotForm = document.getElementById("forgotForm");
   if(forgotForm){
-    forgotForm.addEventListener("submit", async e=>{
+    on(forgotForm, "submit", async e=>{
       e.preventDefault();
       const fd = new FormData(forgotForm);
       const email = String(fd.get("email")||"").trim();
@@ -3744,11 +3894,11 @@ function analiseGerencialView(){
 --------------------------------------------------------- */
 function attachHandlers(){
   document.querySelectorAll("[data-nav]").forEach(el=>{
-    el.addEventListener("click", ()=> setView(el.getAttribute("data-nav")));
+    on(el, "click", ()=> setView(el.getAttribute("data-nav")));
   });
 
   const btnLogout = document.getElementById("btnLogout");
-  if(btnLogout) btnLogout.addEventListener("click", async ()=>{
+  if(btnLogout) on(btnLogout, "click", async ()=>{
     if(confirm("Deseja sair do sistema?")){
       try{ await registrarAcessoFim(); }catch(e){ console.warn(e); }
       try{ await auth.signOut(); }catch(e){ console.warn(e); }
@@ -3756,36 +3906,36 @@ function attachHandlers(){
   });
 
   const btnMobileMenu = document.getElementById("btnMobileMenu");
-  if(btnMobileMenu) btnMobileMenu.addEventListener("click", ()=>{ mobileNavOpen = !mobileNavOpen; render(); });
+  if(btnMobileMenu) on(btnMobileMenu, "click", ()=>{ mobileNavOpen = !mobileNavOpen; render(); });
   const mobileOverlay = document.getElementById("mobileOverlay");
-  if(mobileOverlay) mobileOverlay.addEventListener("click", ()=>{ mobileNavOpen = false; render(); });
+  if(mobileOverlay) on(mobileOverlay, "click", ()=>{ mobileNavOpen = false; render(); });
 
   const btnSettingsMenu = document.getElementById("btnSettingsMenu");
-  if(btnSettingsMenu) btnSettingsMenu.addEventListener("click", ()=>{ settingsMenuOpen = !settingsMenuOpen; render(); });
+  if(btnSettingsMenu) on(btnSettingsMenu, "click", ()=>{ settingsMenuOpen = !settingsMenuOpen; render(); });
   const settingsMenuWrap = document.getElementById("settingsMenuWrap");
-  if(settingsMenuWrap) settingsMenuWrap.addEventListener("click", e=> e.stopPropagation());
+  if(settingsMenuWrap) on(settingsMenuWrap, "click", e=> e.stopPropagation());
   ensureSettingsMenuDocListener();
 
   const sel = document.getElementById("dashPeriodSel");
-  if(sel) sel.addEventListener("change", e=>{ dashPeriod = e.target.value; render(); });
+  if(sel) on(sel, "change", e=>{ dashPeriod = e.target.value; render(); });
   const dashCompetenciaSel = document.getElementById("dashCompetenciaSel");
-  if(dashCompetenciaSel) dashCompetenciaSel.addEventListener("change", e=>{ dashCompetenciaPeriod = e.target.value; render(); });
+  if(dashCompetenciaSel) on(dashCompetenciaSel, "change", e=>{ dashCompetenciaPeriod = e.target.value; render(); });
   const relSel = document.getElementById("relPeriodSel");
-  if(relSel) relSel.addEventListener("change", e=>{ drePeriod = e.target.value; render(); });
+  if(relSel) on(relSel, "change", e=>{ drePeriod = e.target.value; render(); });
   const dreCompetenciaSel = document.getElementById("dreCompetenciaSel");
-  if(dreCompetenciaSel) dreCompetenciaSel.addEventListener("change", e=>{ dreCompetenciaPeriod = e.target.value; render(); });
+  if(dreCompetenciaSel) on(dreCompetenciaSel, "change", e=>{ dreCompetenciaPeriod = e.target.value; render(); });
   const dreIncluirOperacionalChk = document.getElementById("dreIncluirOperacionalChk");
-  if(dreIncluirOperacionalChk) dreIncluirOperacionalChk.addEventListener("change", e=>{ dreIncluirOperacional = e.target.checked; render(); });
+  if(dreIncluirOperacionalChk) on(dreIncluirOperacionalChk, "change", e=>{ dreIncluirOperacional = e.target.checked; render(); });
   const analiseSel = document.getElementById("analisePeriodSel");
-  if(analiseSel) analiseSel.addEventListener("change", e=>{ analisePeriod = e.target.value; render(); });
+  if(analiseSel) on(analiseSel, "change", e=>{ analisePeriod = e.target.value; render(); });
   const gerencialCompetenciaSel = document.getElementById("gerencialCompetenciaSel");
-  if(gerencialCompetenciaSel) gerencialCompetenciaSel.addEventListener("change", e=>{ gerencialCompetencia = e.target.value; render(); });
+  if(gerencialCompetenciaSel) on(gerencialCompetenciaSel, "change", e=>{ gerencialCompetencia = e.target.value; render(); });
   const gerencialDataLancEl = document.getElementById("gerencialDataLanc");
-  if(gerencialDataLancEl) gerencialDataLancEl.addEventListener("change", e=>{ gerencialDataLanc = e.target.value; render(); });
+  if(gerencialDataLancEl) on(gerencialDataLancEl, "change", e=>{ gerencialDataLanc = e.target.value; render(); });
   const gerencialBancoSel = document.getElementById("gerencialBancoSel");
-  if(gerencialBancoSel) gerencialBancoSel.addEventListener("change", e=>{ gerencialBancoId = e.target.value; render(); });
+  if(gerencialBancoSel) on(gerencialBancoSel, "change", e=>{ gerencialBancoId = e.target.value; render(); });
   document.querySelectorAll("[data-gerencial-detail]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
+    on(btn, "click", ()=>{
       const id=btn.getAttribute("data-gerencial-detail");
       const row=document.getElementById(id);
       if(!row) return;
@@ -3794,18 +3944,18 @@ function attachHandlers(){
     });
   });
   const btnAtualizarAcessos = document.getElementById("btnAtualizarAcessos");
-  if(btnAtualizarAcessos) btnAtualizarAcessos.addEventListener("click", ()=>{ acessosCarregado = false; carregarAcessos(); });
+  if(btnAtualizarAcessos) on(btnAtualizarAcessos, "click", ()=>{ acessosCarregado = false; carregarAcessos(); });
   document.querySelectorAll("[data-report]").forEach(el=>{
-    el.addEventListener("click", ()=>{ reportType = el.getAttribute("data-report"); render(); });
+    on(el, "click", ()=>{ reportType = el.getAttribute("data-report"); render(); });
   });
   const btnPrintReport = document.getElementById("btnPrintReport");
-  if(btnPrintReport) btnPrintReport.addEventListener("click", ()=> window.print());
+  if(btnPrintReport) on(btnPrintReport, "click", ()=> window.print());
   const btnPrintAnaliseGerencial = document.getElementById("btnPrintAnaliseGerencial");
-  if(btnPrintAnaliseGerencial) btnPrintAnaliseGerencial.addEventListener("click", ()=> window.print());
+  if(btnPrintAnaliseGerencial) on(btnPrintAnaliseGerencial, "click", ()=> window.print());
   const btnPrintLancamentos = document.getElementById("btnPrintLancamentos");
-  if(btnPrintLancamentos) btnPrintLancamentos.addEventListener("click", ()=> window.print());
+  if(btnPrintLancamentos) on(btnPrintLancamentos, "click", ()=> window.print());
   const btnExportExcelLancamentos = document.getElementById("btnExportExcelLancamentos");
-  if(btnExportExcelLancamentos) btnExportExcelLancamentos.addEventListener("click", ()=>{
+  if(btnExportExcelLancamentos) on(btnExportExcelLancamentos, "click", ()=>{
     if(typeof XLSX === "undefined"){
       alert("Não foi possível carregar o gerador de planilhas. Verifique sua conexão com a internet e tente novamente.");
       return;
@@ -3843,7 +3993,7 @@ function attachHandlers(){
   });
 
   const btnExport = document.getElementById("btnExport");
-  if(btnExport) btnExport.addEventListener("click", ()=>{
+  if(btnExport) on(btnExport, "click", ()=>{
     const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -3856,7 +4006,7 @@ function attachHandlers(){
   });
 
   const btnTemplate = document.getElementById("btnTemplate");
-  if(btnTemplate) btnTemplate.addEventListener("click", ()=>{
+  if(btnTemplate) on(btnTemplate, "click", ()=>{
     if(typeof XLSX === "undefined"){
       alert("Não foi possível carregar o gerador de planilhas. Verifique sua conexão com a internet e tente novamente.");
       return;
@@ -3900,7 +4050,7 @@ function attachHandlers(){
   });
 
   const btnApagarLancamentos = document.getElementById("btnApagarLancamentos");
-  if(btnApagarLancamentos) btnApagarLancamentos.addEventListener("click", async ()=>{
+  if(btnApagarLancamentos) on(btnApagarLancamentos, "click", async ()=>{
     const total = state.lancamentos.length;
     if(!total){ alert("Não há lançamentos cadastrados no momento."); return; }
     if(!confirm(`Isso vai apagar PERMANENTEMENTE os ${total} lançamento(s) cadastrados no sistema (receitas e despesas).\n\nEsta ação não pode ser desfeita. Deseja continuar?`)) return;
@@ -3916,7 +4066,7 @@ function attachHandlers(){
   });
 
   const btnExportBI = document.getElementById("btnExportBI");
-  if(btnExportBI) btnExportBI.addEventListener("click", ()=>{
+  if(btnExportBI) on(btnExportBI, "click", ()=>{
     if(typeof XLSX === "undefined"){
       alert("Não foi possível carregar o gerador de planilhas. Verifique sua conexão com a internet e tente novamente.");
       return;
@@ -3968,8 +4118,8 @@ function attachHandlers(){
   const btnImport = document.getElementById("btnImport");
   const fileImport = document.getElementById("fileImport");
   if(btnImport && fileImport){
-    btnImport.addEventListener("click", ()=> fileImport.click());
-    fileImport.addEventListener("change", (e)=>{
+    on(btnImport, "click", ()=> fileImport.click());
+    on(fileImport, "change", (e)=>{
       const file = e.target.files[0];
       if(!file) return;
       const name = file.name.toLowerCase();
@@ -4208,35 +4358,31 @@ function importSpreadsheet(file){
 }
 
   const fTipo = document.getElementById("fTipo");
-  if(fTipo) fTipo.addEventListener("change", e=>{ filters.tipo = e.target.value; render(); });
+  if(fTipo) on(fTipo, "change", e=>{ filters.tipo = e.target.value; render(); });
   const fPeriodo = document.getElementById("fPeriodo");
-  if(fPeriodo) fPeriodo.addEventListener("change", e=>{ filters.periodo = e.target.value; render(); });
+  if(fPeriodo) on(fPeriodo, "change", e=>{ filters.periodo = e.target.value; render(); });
   const fConta = document.getElementById("fConta");
-  if(fConta) fConta.addEventListener("change", e=>{ filters.contaId = e.target.value; render(); });
+  if(fConta) on(fConta, "change", e=>{ filters.contaId = e.target.value; render(); });
   const fDataDe = document.getElementById("fDataDe");
-  if(fDataDe) fDataDe.addEventListener("change", e=>{ filters.dataDe = e.target.value; render(); });
+  if(fDataDe) on(fDataDe, "change", e=>{ filters.dataDe = e.target.value; render(); });
   const fDataAte = document.getElementById("fDataAte");
-  if(fDataAte) fDataAte.addEventListener("change", e=>{ filters.dataAte = e.target.value; render(); });
+  if(fDataAte) on(fDataAte, "change", e=>{ filters.dataAte = e.target.value; render(); });
+  // Nota: com o motor de morph, o próprio elemento de input sobrevive ao
+  // render() (é reaproveitado, não recriado), então o foco e o cursor já
+  // continuam onde estavam — não precisa mais do hack preserveFocus() que
+  // a versão original usava aqui.
   const fBusca = document.getElementById("fBusca");
-  if(fBusca){
-    fBusca.addEventListener("input", e=>{ filters.busca = e.target.value; render(); preserveFocus("fBusca"); });
-  }
+  if(fBusca) on(fBusca, "input", e=>{ filters.busca = e.target.value; render(); });
   const buscaClientesInput = document.getElementById("buscaClientesInput");
-  if(buscaClientesInput){
-    buscaClientesInput.addEventListener("input", e=>{ buscaClientes = e.target.value; render(); preserveFocus("buscaClientesInput"); });
-  }
+  if(buscaClientesInput) on(buscaClientesInput, "input", e=>{ buscaClientes = e.target.value; render(); });
   const buscaFornecedoresInput = document.getElementById("buscaFornecedoresInput");
-  if(buscaFornecedoresInput){
-    buscaFornecedoresInput.addEventListener("input", e=>{ buscaFornecedores = e.target.value; render(); preserveFocus("buscaFornecedoresInput"); });
-  }
+  if(buscaFornecedoresInput) on(buscaFornecedoresInput, "input", e=>{ buscaFornecedores = e.target.value; render(); });
   const buscaContasInput = document.getElementById("buscaContasInput");
-  if(buscaContasInput){
-    buscaContasInput.addEventListener("input", e=>{ buscaContas = e.target.value; render(); preserveFocus("buscaContasInput"); });
-  }
+  if(buscaContasInput) on(buscaContasInput, "input", e=>{ buscaContas = e.target.value; render(); });
 
   const form = document.getElementById("lancForm");
   if(form){
-    form.addEventListener("submit", async e=>{
+    on(form, "submit", async e=>{
       e.preventDefault();
       const fd = new FormData(form);
       const tipo = currentView === "nova-despesa" ? "despesa" : (editingId ? state.lancamentos.find(l=>l.id===editingId).tipo : "receita");
@@ -4275,10 +4421,10 @@ function importSpreadsheet(file){
   }
 
   document.querySelectorAll("[data-edit]").forEach(el=>{
-    el.addEventListener("click", ()=>{ editingId = el.getAttribute("data-edit"); render(); });
+    on(el, "click", ()=>{ editingId = el.getAttribute("data-edit"); render(); });
   });
   document.querySelectorAll("[data-recibo]").forEach(el=>{
-    el.addEventListener("click", ()=>{
+    on(el, "click", ()=>{
       const l = state.lancamentos.find(x=>x.id===el.getAttribute("data-recibo"));
       if(!l) return;
       const janela = window.open("", "_blank");
@@ -4288,7 +4434,7 @@ function importSpreadsheet(file){
     });
   });
   document.querySelectorAll("[data-del]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const id = el.getAttribute("data-del");
       if(confirm("Excluir este lançamento?")){
         state.lancamentos = state.lancamentos.filter(l=>l.id!==id);
@@ -4300,7 +4446,7 @@ function importSpreadsheet(file){
 
   const userForm = document.getElementById("userForm");
   if(userForm){
-    userForm.addEventListener("submit", async e=>{
+    on(userForm, "submit", async e=>{
       e.preventDefault();
       const fd = new FormData(userForm);
       const payload = {
@@ -4328,10 +4474,10 @@ function importSpreadsheet(file){
     });
   }
   document.querySelectorAll("[data-edituser]").forEach(el=>{
-    el.addEventListener("click", ()=>{ editingUserId = el.getAttribute("data-edituser"); render(); });
+    on(el, "click", ()=>{ editingUserId = el.getAttribute("data-edituser"); render(); });
   });
   document.querySelectorAll("[data-deluser]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const id = el.getAttribute("data-deluser");
       if(confirm("Remover este usuário do programa?")){
         state.usuarios = state.usuarios.filter(u=>u.id!==id);
@@ -4343,7 +4489,7 @@ function importSpreadsheet(file){
 
   const clienteTipoPessoa = document.getElementById("clienteTipoPessoa");
   if(clienteTipoPessoa){
-    clienteTipoPessoa.addEventListener("change", e=>{
+    on(clienteTipoPessoa, "change", e=>{
       const juridica = e.target.value === "juridica";
       const docLabel = document.getElementById("clienteDocLabel");
       const docInput = document.getElementById("clienteDocumento");
@@ -4356,7 +4502,7 @@ function importSpreadsheet(file){
 
   const clienteFormEl = document.getElementById("clienteForm");
   if(clienteFormEl){
-    clienteFormEl.addEventListener("submit", async e=>{
+    on(clienteFormEl, "submit", async e=>{
       e.preventDefault();
       const fd = new FormData(clienteFormEl);
       const documento = String(fd.get("documento")||"").trim();
@@ -4391,10 +4537,10 @@ function importSpreadsheet(file){
     });
   }
   document.querySelectorAll("[data-editcliente]").forEach(el=>{
-    el.addEventListener("click", ()=>{ editingClienteId = el.getAttribute("data-editcliente"); render(); });
+    on(el, "click", ()=>{ editingClienteId = el.getAttribute("data-editcliente"); render(); });
   });
   document.querySelectorAll("[data-delcliente]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const id = el.getAttribute("data-delcliente");
       if(confirm("Remover este cliente?")){
         state.clientes = state.clientes.filter(c=>c.id!==id);
@@ -4406,7 +4552,7 @@ function importSpreadsheet(file){
 
   const fornecedorTipoPessoa = document.getElementById("fornecedorTipoPessoa");
   if(fornecedorTipoPessoa){
-    fornecedorTipoPessoa.addEventListener("change", e=>{
+    on(fornecedorTipoPessoa, "change", e=>{
       const juridica = e.target.value === "juridica";
       const docLabel = document.getElementById("fornecedorDocLabel");
       const docInput = document.getElementById("fornecedorDocumento");
@@ -4419,7 +4565,7 @@ function importSpreadsheet(file){
 
   const fornecedorFormEl = document.getElementById("fornecedorForm");
   if(fornecedorFormEl){
-    fornecedorFormEl.addEventListener("submit", async e=>{
+    on(fornecedorFormEl, "submit", async e=>{
       e.preventDefault();
       const fd = new FormData(fornecedorFormEl);
       const documento = String(fd.get("documento")||"").trim();
@@ -4454,10 +4600,10 @@ function importSpreadsheet(file){
     });
   }
   document.querySelectorAll("[data-editfornecedor]").forEach(el=>{
-    el.addEventListener("click", ()=>{ editingFornecedorId = el.getAttribute("data-editfornecedor"); render(); });
+    on(el, "click", ()=>{ editingFornecedorId = el.getAttribute("data-editfornecedor"); render(); });
   });
   document.querySelectorAll("[data-delfornecedor]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const id = el.getAttribute("data-delfornecedor");
       if(confirm("Remover este fornecedor?")){
         state.fornecedores = state.fornecedores.filter(f=>f.id!==id);
@@ -4471,7 +4617,7 @@ function importSpreadsheet(file){
   const reclassDe = document.getElementById("reclassDe");
   const reclassPara = document.getElementById("reclassPara");
   if(reclassTipo && reclassDe && reclassPara){
-    reclassTipo.addEventListener("change", ()=>{
+    on(reclassTipo, "change", ()=>{
       const opts = opcoesCategorias(reclassTipo.value);
       reclassDe.innerHTML = opts;
       reclassPara.innerHTML = opts;
@@ -4479,7 +4625,7 @@ function importSpreadsheet(file){
   }
   const btnReclassificar = document.getElementById("btnReclassificar");
   if(btnReclassificar){
-    btnReclassificar.addEventListener("click", async ()=>{
+    on(btnReclassificar, "click", async ()=>{
       const tipo = reclassTipo.value;
       const deId = reclassDe.value;
       const paraId = reclassPara.value;
@@ -4501,13 +4647,13 @@ function importSpreadsheet(file){
   const orfaoTipo = document.getElementById("orfaoTipo");
   const orfaoPara = document.getElementById("orfaoPara");
   if(orfaoTipo && orfaoPara){
-    orfaoTipo.addEventListener("change", ()=>{
+    on(orfaoTipo, "change", ()=>{
       orfaoPara.innerHTML = opcoesCategorias(orfaoTipo.value);
     });
   }
   const btnCorrigirOrfaos = document.getElementById("btnCorrigirOrfaos");
   if(btnCorrigirOrfaos){
-    btnCorrigirOrfaos.addEventListener("click", async ()=>{
+    on(btnCorrigirOrfaos, "click", async ()=>{
       const tipo = orfaoTipo.value;
       const paraId = orfaoPara.value;
       if(!paraId){ alert("Cadastre pelo menos uma classificação desse tipo primeiro."); return; }
@@ -4525,7 +4671,7 @@ function importSpreadsheet(file){
   }
 
   document.querySelectorAll("[data-addcat]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const tipo = el.getAttribute("data-addcat");
       const inputId = tipo === "receita" ? "novaCatReceita" : "novaCatDespesa";
       const input = document.getElementById(inputId);
@@ -4545,7 +4691,7 @@ function importSpreadsheet(file){
     });
   });
   document.querySelectorAll("[data-delcat]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const [tipo, id] = el.getAttribute("data-delcat").split(":");
       const inUse = state.lancamentos.some(l=>l.tipo===tipo && l.categoriaId===id);
       if(inUse && !confirm("Essa classificação está em uso em lançamentos existentes. Remover mesmo assim?")) return;
@@ -4557,7 +4703,7 @@ function importSpreadsheet(file){
   });
 
   document.querySelectorAll("[data-addpag]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const kind = el.getAttribute("data-addpag");
       const inputId = kind === "banco" ? "novoBanco" : "novoTipoTransacao";
       const input = document.getElementById(inputId);
@@ -4570,7 +4716,7 @@ function importSpreadsheet(file){
     });
   });
   document.querySelectorAll("[data-delpag]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const [kind, id] = el.getAttribute("data-delpag").split(":");
       const inUse = kind === "banco"
         ? state.lancamentos.some(l=>l.bancoId===id)
@@ -4585,7 +4731,7 @@ function importSpreadsheet(file){
 
   const contaFormEl = document.getElementById("contaForm");
   if(contaFormEl){
-    contaFormEl.addEventListener("submit", async e=>{
+    on(contaFormEl, "submit", async e=>{
       e.preventDefault();
       const fd = new FormData(contaFormEl);
       const payload = {
@@ -4613,10 +4759,10 @@ function importSpreadsheet(file){
     });
   }
   document.querySelectorAll("[data-editconta]").forEach(el=>{
-    el.addEventListener("click", ()=>{ editingContaId = el.getAttribute("data-editconta"); render(); });
+    on(el, "click", ()=>{ editingContaId = el.getAttribute("data-editconta"); render(); });
   });
   document.querySelectorAll("[data-delconta]").forEach(el=>{
-    el.addEventListener("click", async ()=>{
+    on(el, "click", async ()=>{
       const id = el.getAttribute("data-delconta");
       if(confirm("Remover esta conta bancária?")){
         state.contasBancarias = state.contasBancarias.filter(c=>c.id!==id);
@@ -4627,13 +4773,13 @@ function importSpreadsheet(file){
   });
 
   const conciliacaoContaSel = document.getElementById("conciliacaoContaSel");
-  if(conciliacaoContaSel) conciliacaoContaSel.addEventListener("change", e=>{ conciliacaoContaId = e.target.value; editingSaldoInicial = false; render(); });
+  if(conciliacaoContaSel) on(conciliacaoContaSel, "change", e=>{ conciliacaoContaId = e.target.value; editingSaldoInicial = false; render(); });
   const conciliacaoPeriodoSel = document.getElementById("conciliacaoPeriodoSel");
-  if(conciliacaoPeriodoSel) conciliacaoPeriodoSel.addEventListener("change", e=>{ conciliacaoPeriodo = e.target.value; render(); });
+  if(conciliacaoPeriodoSel) on(conciliacaoPeriodoSel, "change", e=>{ conciliacaoPeriodo = e.target.value; render(); });
   const btnPrintConciliacao = document.getElementById("btnPrintConciliacao");
-  if(btnPrintConciliacao) btnPrintConciliacao.addEventListener("click", ()=> window.print());
+  if(btnPrintConciliacao) on(btnPrintConciliacao, "click", ()=> window.print());
   const btnExportExcelConciliacao = document.getElementById("btnExportExcelConciliacao");
-  if(btnExportExcelConciliacao) btnExportExcelConciliacao.addEventListener("click", ()=>{
+  if(btnExportExcelConciliacao) on(btnExportExcelConciliacao, "click", ()=>{
     if(typeof XLSX === "undefined"){
       alert("Não foi possível carregar o gerador de planilhas. Verifique sua conexão com a internet e tente novamente.");
       return;
@@ -4666,13 +4812,13 @@ function importSpreadsheet(file){
   });
 
   const btnDefinirSaldoInicial = document.getElementById("btnDefinirSaldoInicial");
-  if(btnDefinirSaldoInicial) btnDefinirSaldoInicial.addEventListener("click", ()=>{ editingSaldoInicial = true; render(); });
+  if(btnDefinirSaldoInicial) on(btnDefinirSaldoInicial, "click", ()=>{ editingSaldoInicial = true; render(); });
   const btnCancelarSaldoInicial = document.getElementById("btnCancelarSaldoInicial");
-  if(btnCancelarSaldoInicial) btnCancelarSaldoInicial.addEventListener("click", ()=>{ editingSaldoInicial = false; render(); });
+  if(btnCancelarSaldoInicial) on(btnCancelarSaldoInicial, "click", ()=>{ editingSaldoInicial = false; render(); });
 
   const saldoInicialFormEl = document.getElementById("saldoInicialForm");
   if(saldoInicialFormEl){
-    saldoInicialFormEl.addEventListener("submit", async e=>{
+    on(saldoInicialFormEl, "submit", async e=>{
       e.preventDefault();
       const fd = new FormData(saldoInicialFormEl);
       const idx = state.contasBancarias.findIndex(c=>c.id===conciliacaoContaId);
@@ -4690,7 +4836,7 @@ function importSpreadsheet(file){
   }
 
   document.querySelectorAll("[data-editlanc-conciliacao]").forEach(el=>{
-    el.addEventListener("click", ()=>{
+    on(el, "click", ()=>{
       editingId = el.getAttribute("data-editlanc-conciliacao");
       currentView = "lancamentos";
       render();
@@ -4700,7 +4846,7 @@ function importSpreadsheet(file){
   // enter key on category / pagamento add inputs
   ["novaCatReceita","novaCatDespesa"].forEach(id=>{
     const el = document.getElementById(id);
-    if(el) el.addEventListener("keydown", e=>{
+    if(el) on(el, "keydown", e=>{
       if(e.key === "Enter"){
         e.preventDefault();
         const tipo = id === "novaCatReceita" ? "receita" : "despesa";
@@ -4710,7 +4856,7 @@ function importSpreadsheet(file){
   });
   ["novoBanco","novoTipoTransacao"].forEach(id=>{
     const el = document.getElementById(id);
-    if(el) el.addEventListener("keydown", e=>{
+    if(el) on(el, "keydown", e=>{
       if(e.key === "Enter"){
         e.preventDefault();
         const kind = id === "novoBanco" ? "banco" : "tipo";
@@ -4718,11 +4864,6 @@ function importSpreadsheet(file){
       }
     });
   });
-}
-
-function preserveFocus(id){
-  const el = document.getElementById(id);
-  if(el){ el.focus(); const v=el.value; el.value=""; el.value=v; }
 }
 
 /* ---------------------------------------------------------
