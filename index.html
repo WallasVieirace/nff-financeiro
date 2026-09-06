@@ -1706,17 +1706,24 @@ function filteredByPeriod(list, period){
   return list.filter(l=>l.data.slice(0,7) === period);
 }
 
+/* resumo financeiro (receitas, despesas, saldo, margem) de uma lista de lançamentos —
+   usado por dashboard, lançamentos, análise e comparativos de período anterior */
+function resumoFinanceiro(lista){
+  const receitas = lista.filter(l=>l.tipo==="receita");
+  const despesas = lista.filter(l=>l.tipo==="despesa");
+  const totalR = receitas.reduce((a,l)=>a+Number(l.valor),0);
+  const totalD = despesas.reduce((a,l)=>a+Number(l.valor),0);
+  const saldo = totalR - totalD;
+  const margem = totalR > 0 ? (saldo/totalR*100) : null;
+  return { receitas, despesas, totalR, totalD, saldo, margem };
+}
+
 function dashboardView(){
   const usandoCompetenciaDash = dashCompetenciaPeriod !== "all";
   const lancs = usandoCompetenciaDash
     ? state.lancamentos.filter(l => (l.competencia || l.data.slice(0,7)) === dashCompetenciaPeriod)
     : filteredByPeriod(state.lancamentos, dashPeriod);
-  const receitas = lancs.filter(l=>l.tipo==="receita");
-  const despesas = lancs.filter(l=>l.tipo==="despesa");
-  const totalR = receitas.reduce((a,l)=>a+Number(l.valor),0);
-  const totalD = despesas.reduce((a,l)=>a+Number(l.valor),0);
-  const saldo = totalR - totalD;
-  const margem = totalR > 0 ? (saldo/totalR*100) : null;
+  const { receitas, despesas, totalR, totalD, saldo, margem } = resumoFinanceiro(lancs);
 
   let variR = null, variD = null, variSaldo = null, variMargem = null;
   const periodoAtivoDash = usandoCompetenciaDash ? dashCompetenciaPeriod : dashPeriod;
@@ -1725,10 +1732,7 @@ function dashboardView(){
     const lancsAnt = usandoCompetenciaDash
       ? state.lancamentos.filter(l => (l.competencia || l.data.slice(0,7)) === anterior)
       : filteredByPeriod(state.lancamentos, anterior);
-    const totalRAnt = lancsAnt.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor),0);
-    const totalDAnt = lancsAnt.filter(l=>l.tipo==="despesa").reduce((a,l)=>a+Number(l.valor),0);
-    const saldoAnt = totalRAnt - totalDAnt;
-    const margemAnt = totalRAnt > 0 ? (saldoAnt/totalRAnt*100) : null;
+    const { totalR: totalRAnt, totalD: totalDAnt, saldo: saldoAnt, margem: margemAnt } = resumoFinanceiro(lancsAnt);
     if(totalRAnt > 0) variR = (totalR-totalRAnt)/totalRAnt*100;
     if(totalDAnt > 0) variD = (totalD-totalDAnt)/totalDAnt*100;
     if(saldoAnt !== 0) variSaldo = (saldo-saldoAnt)/Math.abs(saldoAnt)*100;
@@ -2071,9 +2075,7 @@ function lancamentosView(){
   list.sort((a,b)=> b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
   listaLancamentosFiltrada = list;
 
-  const totalR = list.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor),0);
-  const totalD = list.filter(l=>l.tipo==="despesa").reduce((a,l)=>a+Number(l.valor),0);
-  const saldoFiltro = totalR - totalD;
+  const { totalR, totalD, saldo: saldoFiltro } = resumoFinanceiro(list);
 
   const months = getAvailableMonths();
   const filtroResumo = [
@@ -3330,12 +3332,7 @@ function acessosView(){
 
 function analiseView(){
   const lancs = filteredByPeriod(state.lancamentos, analisePeriod);
-  const receitas = lancs.filter(l=>l.tipo==="receita");
-  const despesas = lancs.filter(l=>l.tipo==="despesa");
-  const totalR = receitas.reduce((a,l)=>a+Number(l.valor),0);
-  const totalD = despesas.reduce((a,l)=>a+Number(l.valor),0);
-  const saldo = totalR - totalD;
-  const margem = totalR > 0 ? (saldo/totalR*100) : null;
+  const { receitas, despesas, totalR, totalD, saldo, margem } = resumoFinanceiro(lancs);
 
   const positivos = [];
   const atencao = [];
@@ -3358,8 +3355,7 @@ function analiseView(){
   if(analisePeriod !== "all"){
     const anterior = mesAnterior(analisePeriod);
     const lancsAnt = filteredByPeriod(state.lancamentos, anterior);
-    const totalRAnt = lancsAnt.filter(l=>l.tipo==="receita").reduce((a,l)=>a+Number(l.valor),0);
-    const totalDAnt = lancsAnt.filter(l=>l.tipo==="despesa").reduce((a,l)=>a+Number(l.valor),0);
+    const { totalR: totalRAnt, totalD: totalDAnt } = resumoFinanceiro(lancsAnt);
     if(totalRAnt > 0){
       const variR = (totalR-totalRAnt)/totalRAnt*100;
       if(variR >= 5) positivos.push(`Receita cresceu <strong>${variR.toFixed(1)}%</strong> em relação ao mês anterior.`);
