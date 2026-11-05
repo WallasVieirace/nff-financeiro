@@ -83,18 +83,35 @@
   .nav button{
     all:unset; box-sizing:border-box; cursor:pointer;
     display:flex; align-items:center; gap:10px;
-    padding:10px 12px; border-radius:10px;
-    font-size:14px; color:rgba(255,255,255,.72); font-weight:500;
+    padding:8px 10px; border-radius:11px;
+    font-size:13.5px; color:rgba(255,255,255,.72); font-weight:500;
     transition:background .15s, color .15s;
     position:relative;
   }
   .nav button:hover{ background:rgba(255,255,255,.06); color:#fff; }
-  .nav button.active{ background:rgba(255,255,255,.1); color:#fff; }
-  .nav button.active::before{
-    content:""; position:absolute; left:-12px; top:50%; transform:translateY(-50%);
-    width:3px; height:16px; border-radius:0 3px 3px 0; background:var(--gold);
+  .nav button.active{ background:rgba(201,162,39,.14); color:#fff; font-weight:600; }
+  .nav button .ic{
+    width:28px; height:28px; padding:6px; box-sizing:border-box; flex-shrink:0;
+    border-radius:8px; background:rgba(255,255,255,.07); opacity:1;
+    transition:background .15s, color .15s;
   }
-  .nav button .ic{ width:18px; height:18px; flex-shrink:0; opacity:.9; }
+  .nav button:hover .ic{ background:rgba(255,255,255,.12); }
+  .nav button.active .ic{ background:var(--gold); color:var(--navy-950); }
+
+  .sidebar-balance{
+    margin:4px 14px 14px; padding:13px 14px; border-radius:13px;
+    background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.09);
+    position:relative; z-index:1;
+  }
+  .sidebar-balance .sb-label{
+    font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(255,255,255,.42); font-weight:700;
+  }
+  .sidebar-balance .sb-row{ display:flex; align-items:baseline; gap:8px; margin-top:4px; }
+  .sidebar-balance .sb-value{ font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600; color:#fff; }
+  .sidebar-balance .sb-trend{ display:inline-flex; align-items:center; gap:2px; font-size:11px; font-weight:700; }
+  .sidebar-balance .sb-trend.up{ color:#6fe3bc; }
+  .sidebar-balance .sb-trend.down{ color:#f3a3a3; }
 
   .sidebar-foot{
     padding:16px 22px 20px; font-size:11px; color:rgba(255,255,255,.32);
@@ -1117,7 +1134,11 @@ function trendBadge(pct, orientacaoAltaBoa, sufixo){
   const bom = orientacaoAltaBoa ? pct >= 0 : pct <= 0;
   const seta = pct >= 0 ? "↑" : "↓";
   const cor = bom ? "var(--green)" : "var(--red)";
-  return `<div style="font-size:10.5px; color:${cor}; margin-top:2px;">${seta} ${Math.abs(pct).toFixed(1)}${sufixo||"%"} vs mês anterior</div>`;
+  const bg = bom ? "var(--green-soft)" : "var(--red-soft)";
+  return `<div style="display:flex; align-items:center; gap:6px; margin-top:8px;">
+    <span style="display:inline-flex; align-items:center; gap:3px; font-size:11px; font-weight:700; color:${cor}; background:${bg}; padding:3px 9px; border-radius:20px;">${seta} ${Math.abs(pct).toFixed(1)}${sufixo||"%"}</span>
+    <span style="font-size:11px; color:var(--ink-soft);">vs mês anterior</span>
+  </div>`;
 }
 function fmtDate(d){
   if(!d) return "—";
@@ -1379,6 +1400,8 @@ const ICONS = {
   trash: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`,
   recibo: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2Z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>`,
   gear: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.4-2.4 1a7.7 7.7 0 0 0-1.7-1L15 3.5h-4l-.3 2.6a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.4-1c.5.4 1.1.75 1.7 1l.3 2.6h4l.3-2.6c.6-.25 1.2-.6 1.7-1l2.4 1 2-3.4Z"/></svg>`,
+  saldo: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2H5a2 2 0 0 1-2-2Z"/><path d="M3 9v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H5"/><circle cx="16.5" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg>`,
+  percent: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.8" cy="6.8" r="2.3"/><circle cx="17.2" cy="17.2" r="2.3"/></svg>`,
 };
 
 function setView(v){ currentView = v; editingId = null; editingUserId = null; editingClienteId = null; editingFornecedorId = null; editingContaId = null; editingSaldoInicial = false; mobileNavOpen = false; settingsMenuOpen = false; render(); }
@@ -1394,6 +1417,22 @@ function ensureSettingsMenuDocListener(){
     settingsMenuOpen = false;
     render();
   });
+}
+
+function sidebarSaldoWidget(){
+  const mesAtual = thisMonthYM();
+  const { saldo } = resumoFinanceiro(filteredByPeriod(state.lancamentos, mesAtual));
+  const { saldo: saldoAnt } = resumoFinanceiro(filteredByPeriod(state.lancamentos, mesAnterior(mesAtual)));
+  const variacao = saldoAnt !== 0 ? (saldo-saldoAnt)/Math.abs(saldoAnt)*100 : null;
+  return `
+    <div class="sidebar-balance">
+      <div class="sb-label">Saldo do mês</div>
+      <div class="sb-row">
+        <div class="sb-value" style="color:${saldo>=0?'#6fe3bc':'#f3a3a3'}">R$ ${fmtMoney(saldo)}</div>
+        ${variacao===null ? "" : `<span class="sb-trend ${variacao>=0?'up':'down'}">${variacao>=0?'↑':'↓'} ${Math.abs(variacao).toFixed(0)}%</span>`}
+      </div>
+    </div>
+  `;
 }
 
 /* ---------------------------------------------------------
@@ -1447,6 +1486,7 @@ function render(){
         ${navBtn("fornecedores","fornecedores","Fornecedores")}
         ${podeGerenciarUsuarios() ? navBtn("usuarios","usuarios","Usuários") : ""}
       </div>
+      ${sidebarSaldoWidget()}
       <div class="sidebar-foot">
         ${!podeEditar() ? `<div class="readonly-tag">👁 Somente leitura</div>` : ""}
         <div class="logged-user">
@@ -1857,7 +1897,10 @@ function dashboardView(){
             <div class="kpi-label">Receitas</div>
             <div class="kpi-value green">R$ ${fmtMoney(totalR)}</div>
           </div>
-          ${sparklineSVG(serieR, "var(--green)")}
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+            <span class="card-icon green">${ICONS.receita}</span>
+            ${sparklineSVG(serieR, "var(--green)")}
+          </div>
         </div>
         <div class="kpi-sub">${receitas.length} lançamento(s)</div>
         ${trendBadge(variR, true)}
@@ -1868,7 +1911,10 @@ function dashboardView(){
             <div class="kpi-label">Despesas</div>
             <div class="kpi-value red">R$ ${fmtMoney(totalD)}</div>
           </div>
-          ${sparklineSVG(serieD, "var(--red)")}
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+            <span class="card-icon red">${ICONS.despesa}</span>
+            ${sparklineSVG(serieD, "var(--red)")}
+          </div>
         </div>
         <div class="kpi-sub">${despesas.length} lançamento(s)</div>
         ${trendBadge(variD, false)}
@@ -1879,7 +1925,10 @@ function dashboardView(){
             <div class="kpi-label">Saldo</div>
             <div class="kpi-value" style="color:${saldo>=0 ? 'var(--green)':'var(--red)'}">R$ ${fmtMoney(saldo)}</div>
           </div>
-          ${sparklineSVG(serieSaldo, saldo>=0 ? "var(--navy-900)" : "var(--red)")}
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+            <span class="card-icon ${saldo>=0?'green':'red'}">${ICONS.saldo}</span>
+            ${sparklineSVG(serieSaldo, saldo>=0 ? "var(--navy-900)" : "var(--red)")}
+          </div>
         </div>
         <div class="kpi-sub">${saldo>=0 ? "Resultado positivo" : "Resultado negativo"}</div>
         ${trendBadge(variSaldo, true)}
@@ -1890,7 +1939,10 @@ function dashboardView(){
             <div class="kpi-label">Margem líquida</div>
             <div class="kpi-value" style="color:var(--navy-900)">${margem===null ? "—" : margem.toFixed(1)+"%"}</div>
           </div>
-          ${progressRingSVG(margem===null ? 0 : margem, "var(--gold)")}
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+            <span class="card-icon navy">${ICONS.percent}</span>
+            ${progressRingSVG(margem===null ? 0 : margem, "var(--gold)")}
+          </div>
         </div>
         <div class="kpi-sub">${margem===null ? "Sem receita no período" : (margem>=20 ? "Patamar saudável" : margem>=10 ? "Patamar razoável" : "Abaixo do recomendado")}</div>
         ${variMargem===null ? "" : trendBadge(variMargem, true, " pts")}
