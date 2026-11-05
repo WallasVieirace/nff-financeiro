@@ -434,6 +434,14 @@
     border-top:2px solid var(--navy-900); border-bottom:none; padding-top:12px;
     font-size:12.5px; font-weight:600; color:var(--ink-soft); background:#fafbfd;
   }
+  .pagination-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    margin-top:14px; padding-top:14px; border-top:1px solid var(--paper-line);
+  }
+  .pagination-info{ font-size:12px; color:var(--ink-soft); }
+  .pagination-nav{ display:flex; align-items:center; gap:10px; }
+  .pagination-pag{ font-size:12.5px; font-weight:600; color:var(--ink); white-space:nowrap; }
+  .pagination-row .icon-btn[disabled]{ opacity:.35; cursor:default; pointer-events:none; }
   .readonly-tag{
     font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
     color:#e0b84a; background:rgba(224,184,74,.12); border:1px solid rgba(224,184,74,.3);
@@ -1647,6 +1655,9 @@ let acessosCarregado = false;
 let reportType = "dre"; // dre | receitas | despesas | fluxo
 let filters = { tipo:"todos", periodo:"all", contaId:"all", dataDe:"", dataAte:"", busca:"" };
 let listaLancamentosFiltrada = [];
+let lancamentosPagina = 1;
+const LANCAMENTOS_POR_PAGINA = 50;
+let lancamentosImprimirTudo = false; // true só durante a impressão, pra sair da paginação e imprimir a lista inteira
 let conciliacaoExportCache = null;
 let buscaClientes = "";
 let buscaFornecedores = "";
@@ -1690,9 +1701,11 @@ const ICONS = {
   gear: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.4-2.4 1a7.7 7.7 0 0 0-1.7-1L15 3.5h-4l-.3 2.6a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.4-1c.5.4 1.1.75 1.7 1l.3 2.6h4l.3-2.6c.6-.25 1.2-.6 1.7-1l2.4 1 2-3.4Z"/></svg>`,
   saldo: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2H5a2 2 0 0 1-2-2Z"/><path d="M3 9v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H5"/><circle cx="16.5" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg>`,
   percent: `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.8" cy="6.8" r="2.3"/><circle cx="17.2" cy="17.2" r="2.3"/></svg>`,
+  prevPage: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>`,
+  nextPage: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>`,
 };
 
-function setView(v){ currentView = v; editingId = null; editingUserId = null; editingClienteId = null; editingFornecedorId = null; editingContaId = null; editingSaldoInicial = false; mobileNavOpen = false; settingsMenuOpen = false; render(); }
+function setView(v){ currentView = v; editingId = null; editingUserId = null; editingClienteId = null; editingFornecedorId = null; editingContaId = null; editingSaldoInicial = false; mobileNavOpen = false; settingsMenuOpen = false; lancamentosPagina = 1; render(); }
 
 // fecha o menu de "Dados & backup" ao clicar fora dele — listener único (não reanexado
 // a cada render) porque fica no document, que nunca é substituído pelo innerHTML da UI.
@@ -2475,6 +2488,12 @@ function lancamentosView(){
   list.sort((a,b)=> b.data.localeCompare(a.data) || b.id.localeCompare(a.id));
   listaLancamentosFiltrada = list;
 
+  const totalPaginas = Math.max(1, Math.ceil(list.length / LANCAMENTOS_POR_PAGINA));
+  if(lancamentosPagina > totalPaginas) lancamentosPagina = totalPaginas;
+  if(lancamentosPagina < 1) lancamentosPagina = 1;
+  const inicioPagina = (lancamentosPagina-1) * LANCAMENTOS_POR_PAGINA;
+  const listaPagina = lancamentosImprimirTudo ? list : list.slice(inicioPagina, inicioPagina + LANCAMENTOS_POR_PAGINA);
+
   const { totalR, totalD, saldo: saldoFiltro } = resumoFinanceiro(list);
 
   const months = getAvailableMonths();
@@ -2533,7 +2552,7 @@ function lancamentosView(){
       <table>
         <thead><tr><th>Data</th><th>Descrição</th><th>Classificação</th><th>Pagamento</th><th>Tipo</th><th>Status</th><th style="text-align:right">Valor</th><th></th></tr></thead>
         <tbody>
-          ${list.map(l=>`
+          ${listaPagina.map(l=>`
             <tr>
               <td class="mono">${fmtDate(l.data)}${l.competencia ? `<div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;">Comp: ${monthLabel(l.competencia)}</div>` : ""}</td>
               <td>${l.descricao||"—"}${l.parte?`<div style="font-size:11.5px;color:var(--ink-soft);margin-top:2px;">${l.parte}</div>`:""}</td>
@@ -2567,6 +2586,16 @@ function lancamentosView(){
         </tfoot>
       </table>` : `<div class="empty-state"><div class="glyph">📋</div><div class="t">Nenhum lançamento encontrado</div>Ajuste os filtros ou registre um novo lançamento.</div>`}
       </div>
+
+      ${list.length > LANCAMENTOS_POR_PAGINA ? `
+      <div class="pagination-row no-print">
+        <span class="pagination-info">Mostrando ${inicioPagina+1}–${Math.min(inicioPagina+LANCAMENTOS_POR_PAGINA, list.length)} de ${list.length}</span>
+        <div class="pagination-nav">
+          <button class="icon-btn" data-lanc-pag="prev" ${lancamentosPagina<=1?"disabled":""} title="Página anterior">${ICONS.prevPage}</button>
+          <span class="pagination-pag">Página ${lancamentosPagina} de ${totalPaginas}</span>
+          <button class="icon-btn" data-lanc-pag="next" ${lancamentosPagina>=totalPaginas?"disabled":""} title="Próxima página">${ICONS.nextPage}</button>
+        </div>
+      </div>` : ""}
     </div>
   `;
 }
@@ -4196,7 +4225,12 @@ function attachHandlers(){
   const btnPrintAnaliseGerencial = document.getElementById("btnPrintAnaliseGerencial");
   if(btnPrintAnaliseGerencial) btnPrintAnaliseGerencial.addEventListener("click", ()=> window.print());
   const btnPrintLancamentos = document.getElementById("btnPrintLancamentos");
-  if(btnPrintLancamentos) btnPrintLancamentos.addEventListener("click", ()=> window.print());
+  if(btnPrintLancamentos) btnPrintLancamentos.addEventListener("click", ()=>{
+    // sai da paginação só pra impressão, pra sair uma lista completa, não só a página visível na tela
+    lancamentosImprimirTudo = true;
+    render();
+    window.print();
+  });
   const btnExportExcelLancamentos = document.getElementById("btnExportExcelLancamentos");
   if(btnExportExcelLancamentos) btnExportExcelLancamentos.addEventListener("click", ()=>{
     if(typeof XLSX === "undefined"){
@@ -4605,16 +4639,22 @@ function importSpreadsheet(file){
 }
 
   const fTipo = document.getElementById("fTipo");
-  if(fTipo) fTipo.addEventListener("change", e=>{ filters.tipo = e.target.value; render(); });
+  if(fTipo) fTipo.addEventListener("change", e=>{ filters.tipo = e.target.value; lancamentosPagina = 1; render(); });
   const fPeriodo = document.getElementById("fPeriodo");
-  if(fPeriodo) fPeriodo.addEventListener("change", e=>{ filters.periodo = e.target.value; render(); });
+  if(fPeriodo) fPeriodo.addEventListener("change", e=>{ filters.periodo = e.target.value; lancamentosPagina = 1; render(); });
   const fConta = document.getElementById("fConta");
-  if(fConta) fConta.addEventListener("change", e=>{ filters.contaId = e.target.value; render(); });
+  if(fConta) fConta.addEventListener("change", e=>{ filters.contaId = e.target.value; lancamentosPagina = 1; render(); });
   const fDataDe = document.getElementById("fDataDe");
-  if(fDataDe) fDataDe.addEventListener("change", e=>{ filters.dataDe = e.target.value; render(); });
+  if(fDataDe) fDataDe.addEventListener("change", e=>{ filters.dataDe = e.target.value; lancamentosPagina = 1; render(); });
   const fDataAte = document.getElementById("fDataAte");
-  if(fDataAte) fDataAte.addEventListener("change", e=>{ filters.dataAte = e.target.value; render(); });
-  ligarBuscaComDebounce("fBusca", v => { filters.busca = v; });
+  if(fDataAte) fDataAte.addEventListener("change", e=>{ filters.dataAte = e.target.value; lancamentosPagina = 1; render(); });
+  document.querySelectorAll("[data-lanc-pag]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      lancamentosPagina += el.getAttribute("data-lanc-pag") === "next" ? 1 : -1;
+      render();
+    });
+  });
+  ligarBuscaComDebounce("fBusca", v => { filters.busca = v; lancamentosPagina = 1; });
   ligarBuscaComDebounce("buscaClientesInput", v => { buscaClientes = v; });
   ligarBuscaComDebounce("buscaFornecedoresInput", v => { buscaFornecedores = v; });
   ligarBuscaComDebounce("buscaContasInput", v => { buscaContas = v; });
@@ -5146,6 +5186,9 @@ function ligarBuscaComDebounce(id, aplicar, delayMs){
    INIT
 --------------------------------------------------------- */
 window.addEventListener("pagehide", ()=>{ registrarAcessoFim(); });
+window.addEventListener("afterprint", ()=>{
+  if(lancamentosImprimirTudo){ lancamentosImprimirTudo = false; render(); }
+});
 
 if(!FIREBASE_READY) iniciarAutenticacao();
 </script>
