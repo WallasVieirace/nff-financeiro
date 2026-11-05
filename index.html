@@ -4859,6 +4859,12 @@ function importSpreadsheet(file){
       if((tipoPessoa==="fisica" && digitos.length!==11) || (tipoPessoa==="juridica" && digitos.length!==14)){
         if(!confirm(`O ${tipoPessoa==="juridica"?"CNPJ":"CPF"} informado não tem a quantidade de dígitos esperada. Deseja salvar mesmo assim?`)) return;
       }
+      const idAtual = editingClienteId;
+      const documentoDuplicado = digitos && state.clientes.some(c=>c.id!==idAtual && (c.documento||"").replace(/\D/g,"")===digitos);
+      if(documentoDuplicado){
+        alert(`Já existe outro cliente cadastrado com esse ${tipoPessoa==="juridica"?"CNPJ":"CPF"}.`);
+        return;
+      }
       const payload = {
         id: editingClienteId || uid(),
         tipoPessoa,
@@ -4921,6 +4927,12 @@ function importSpreadsheet(file){
       const digitos = documento.replace(/\D/g,"");
       if((tipoPessoa==="fisica" && digitos.length!==11) || (tipoPessoa==="juridica" && digitos.length!==14)){
         if(!confirm(`O ${tipoPessoa==="juridica"?"CNPJ":"CPF"} informado não tem a quantidade de dígitos esperada. Deseja salvar mesmo assim?`)) return;
+      }
+      const idAtual = editingFornecedorId;
+      const documentoDuplicado = digitos && state.fornecedores.some(f=>f.id!==idAtual && (f.documento||"").replace(/\D/g,"")===digitos);
+      if(documentoDuplicado){
+        alert(`Já existe outro fornecedor cadastrado com esse ${tipoPessoa==="juridica"?"CNPJ":"CPF"}.`);
+        return;
       }
       const payload = {
         id: editingFornecedorId || uid(),
