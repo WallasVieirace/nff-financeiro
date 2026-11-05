@@ -786,8 +786,9 @@ const FIREBASE_READY = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "
 
 let db = null;
 let docRef = null; // documento único legado — mantido só como leitura/backup da migração, nunca mais escrito
-let configRef = null; // cadastros (tudo exceto lançamentos): categorias, bancos, clientes, fornecedores, contas, usuários…
+let configRef = null; // cadastros (tudo exceto lançamentos e usuários): categorias, bancos, clientes, fornecedores, contas…
 let lancamentosRef = null; // coleção com 1 documento por lançamento
+let usuariosRef = null; // coleção com 1 documento por usuário (chave = e-mail em minúsculas) — em coleção própria pra dar pra checar o perfil nas regras do Firestore
 let auth = null;
 if(FIREBASE_READY){
   try{
@@ -795,6 +796,7 @@ if(FIREBASE_READY){
     db = firebase.firestore();
     docRef = db.collection("nff_financeiro").doc("estado");
     configRef = db.collection("nff_financeiro").doc("config");
+    usuariosRef = db.collection("nff_financeiro_usuarios");
     lancamentosRef = db.collection("nff_financeiro_lancamentos");
     auth = firebase.auth();
     // sessão não persiste entre aberturas/atualizações — sempre exige login novamente
@@ -966,11 +968,12 @@ function migrarEstado(parsed){
   });
 }
 
-// aplica um payload de CONFIGURAÇÃO (tudo exceto lançamentos) sobre o state atual,
-// preservando os lançamentos que o listener da coleção própria já tiver carregado
+// aplica um payload de CONFIGURAÇÃO (tudo exceto lançamentos e usuários) sobre o
+// state atual, preservando o que os listeners das coleções próprias já carregaram
 function migrarEstadoConfig(parsed){
   const lancamentosAtuais = state.lancamentos;
-  migrarEstado(Object.assign({lancamentos: lancamentosAtuais}, parsed));
+  const usuariosAtuais = state.usuarios;
+  migrarEstado(Object.assign({lancamentos: lancamentosAtuais, usuarios: usuariosAtuais}, parsed));
 }
 
 function estaDigitandoEmFormulario(){
@@ -981,17 +984,21 @@ function estaDigitandoEmFormulario(){
 }
 
 /* ---------------------------------------------------------
-   PERSISTÊNCIA — lançamentos em coleção própria (1 doc cada),
-   cadastros (categorias, bancos, clientes...) num documento de config.
-   O documento único antigo (nff_financeiro/estado) nunca é mais
-   escrito — fica intacto como backup da migração.
+   PERSISTÊNCIA — lançamentos e usuários em coleções próprias (1 doc
+   cada), demais cadastros (categorias, bancos, clientes...) num
+   documento de config. Usuários ficam em coleção própria (chave =
+   e-mail) para que as regras do Firestore consigam checar o perfil
+   de quem está escrevendo e bloquear "Somente Leitura" no banco, não
+   só na interface. O documento único antigo (nff_financeiro/estado)
+   nunca é mais escrito — fica intacto como backup da migração.
 --------------------------------------------------------- */
 let configCarregado = false;
 let lancamentosCarregados = false;
+let usuariosCarregados = false;
 let migracaoColecoesVerificada = false;
 
 function marcarProntoSeCompleto(){
-  if(configCarregado && lancamentosCarregados){ ready = true; render(); }
+  if(configCarregado && lancamentosCarregados && usuariosCarregados){ ready = true; render(); }
 }
 
 async function gravarLancamentosEmLote(lista, opts){
@@ -1016,10 +1023,35 @@ async function gravarLancamentosEmLote(lista, opts){
   }
 }
 
+async function gravarUsuariosEmLote(lista, opts){
+  opts = opts || {};
+  const TAM_LOTE = 450;
+  if(opts.apagarAntesDeGravar){
+    const existentes = await usuariosRef.get();
+    let batchDel = db.batch(), n = 0;
+    for(const doc of existentes.docs){
+      batchDel.delete(doc.ref); n++;
+      if(n === TAM_LOTE){ await batchDel.commit(); batchDel = db.batch(); n = 0; }
+    }
+    if(n > 0) await batchDel.commit();
+  }
+  const comEmail = (lista||[]).filter(u=>{
+    if(!u.email){ console.warn("Usuário sem e-mail ignorado:", u); return false; }
+    return true;
+  });
+  for(let i=0; i<comEmail.length; i+=TAM_LOTE){
+    const batch = db.batch();
+    comEmail.slice(i, i+TAM_LOTE).forEach(u=>{
+      batch.set(usuariosRef.doc(u.email.toLowerCase()), u);
+    });
+    await batch.commit();
+  }
+}
+
 // migração única: só roda se "config" ainda não existir. Lê o documento único
 // antigo (se existir), normaliza com a mesma lógica de sempre (migrarEstado) e
-// grava cada lançamento como documento próprio + o resto num doc de config.
-// O documento antigo NUNCA é apagado nem sobrescrito — fica como backup.
+// grava cada lançamento/usuário como documento próprio + o resto num doc de
+// config. O documento antigo NUNCA é apagado nem sobrescrito — fica como backup.
 async function garantirMigracaoParaColecoes(){
   if(migracaoColecoesVerificada) return;
   migracaoColecoesVerificada = true;
@@ -1037,15 +1069,17 @@ async function garantirMigracaoParaColecoes(){
 
   migrarEstado(parsedAntigo || {});
   const lancamentosParaMigrar = state.lancamentos || [];
-  const { lancamentos, ...cfgSemLancamentos } = state;
+  const usuariosParaMigrar = state.usuarios || [];
+  const { lancamentos, usuarios, ...cfgSemLancamentosEUsuarios } = state;
 
   await gravarLancamentosEmLote(lancamentosParaMigrar);
+  await gravarUsuariosEmLote(usuariosParaMigrar);
   await configRef.set({
-    payload: JSON.stringify(cfgSemLancamentos),
+    payload: JSON.stringify(cfgSemLancamentosEUsuarios),
     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 
-  console.info(`[NFF] Migração para a nova estrutura concluída: ${lancamentosParaMigrar.length} lançamento(s) movido(s) para coleção própria. O documento antigo foi mantido intacto.`);
+  console.info(`[NFF] Migração para a nova estrutura concluída: ${lancamentosParaMigrar.length} lançamento(s) e ${usuariosParaMigrar.length} usuário(s) movidos para coleções próprias. O documento antigo foi mantido intacto.`);
 }
 
 async function loadState(){
@@ -1109,15 +1143,32 @@ async function loadState(){
       render();
     }
   );
+
+  usuariosRef.onSnapshot(
+    (snap)=>{
+      state.usuarios = snap.docs.map(d=>d.data());
+      usuariosCarregados = true;
+      syncError = null;
+      marcarProntoSeCompleto();
+      render();
+    },
+    (err)=>{
+      console.error("Erro de sincronização (usuários):", err);
+      syncError = "Não foi possível conectar ao banco de dados. Verifique a configuração do Firebase e as regras do Firestore.";
+      usuariosCarregados = true;
+      marcarProntoSeCompleto();
+      render();
+    }
+  );
 }
 
-// salva tudo EXCETO lançamentos (categorias, bancos, clientes, fornecedores,
-// contas bancárias, usuários, tipos de transação, flags de validação…)
+// salva tudo EXCETO lançamentos e usuários (categorias, bancos, clientes,
+// fornecedores, contas bancárias, tipos de transação, flags de validação…)
 async function saveConfig(){
   if(!FIREBASE_READY) return;
   savingNow = true;
   try{
-    const { lancamentos, ...cfg } = state;
+    const { lancamentos, usuarios, ...cfg } = state;
     await configRef.set({
       payload: JSON.stringify(cfg),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1165,6 +1216,39 @@ async function apagarTodosOsLancamentos(){
   }catch(e){
     console.error("Falha ao apagar lançamentos:", e);
     syncError = "Não foi possível apagar os lançamentos. Verifique sua conexão com a internet.";
+  }
+  savingNow = false;
+}
+
+// usuários ficam em coleção própria, com o e-mail (minúsculo) como ID do
+// documento, pra regras do Firestore conseguirem checar o perfil de quem
+// escreve. Se o e-mail mudar numa edição, apaga o doc antigo e cria o novo.
+async function salvarUsuario(u, emailAntigo){
+  if(!FIREBASE_READY) return;
+  savingNow = true;
+  try{
+    const emailNovo = (u.email||"").toLowerCase();
+    if(emailAntigo && emailAntigo.toLowerCase() !== emailNovo){
+      await usuariosRef.doc(emailAntigo.toLowerCase()).delete();
+    }
+    await usuariosRef.doc(emailNovo).set(u);
+    syncError = null;
+  }catch(e){
+    console.error("Falha ao salvar usuário:", e);
+    syncError = "Não foi possível salvar o usuário. Verifique sua conexão com a internet.";
+  }
+  savingNow = false;
+}
+
+async function excluirUsuario(email){
+  if(!FIREBASE_READY || !email) return;
+  savingNow = true;
+  try{
+    await usuariosRef.doc(email.toLowerCase()).delete();
+    syncError = null;
+  }catch(e){
+    console.error("Falha ao excluir usuário:", e);
+    syncError = "Não foi possível excluir o usuário. Verifique sua conexão com a internet.";
   }
   savingNow = false;
 }
@@ -4310,6 +4394,7 @@ async function importJsonBackup(file){
         c.grupoDRE ? c : Object.assign({}, c, {grupoDRE:"administrativa"})
       );
       await gravarLancamentosEmLote(state.lancamentos, { apagarAntesDeGravar:true });
+      await gravarUsuariosEmLote(state.usuarios, { apagarAntesDeGravar:true });
       await saveConfig();
       render();
     }catch(err){
@@ -4624,16 +4709,22 @@ function importSpreadsheet(file){
         perfil: fd.get("perfil"),
         status: fd.get("status"),
       };
+      const emailDuplicado = state.usuarios.some(u=>u.id!==payload.id && (u.email||"").toLowerCase()===payload.email.toLowerCase());
+      if(emailDuplicado){
+        alert("Já existe outro usuário cadastrado com esse e-mail.");
+        return;
+      }
       if(editingUserId){
         const idx = state.usuarios.findIndex(u=>u.id===editingUserId);
+        const emailAntigo = state.usuarios[idx].email;
         state.usuarios[idx] = payload;
         editingUserId = null;
-        await saveConfig();
+        await salvarUsuario(payload, emailAntigo);
         mostrarBanner("Usuário atualizado com sucesso.");
         render();
       } else {
         state.usuarios.push(payload);
-        await saveConfig();
+        await salvarUsuario(payload);
         mostrarBanner("Usuário cadastrado com sucesso.");
         render();
       }
@@ -4646,8 +4737,9 @@ function importSpreadsheet(file){
     el.addEventListener("click", async ()=>{
       const id = el.getAttribute("data-deluser");
       if(confirm("Remover este usuário do programa?")){
+        const alvo = state.usuarios.find(u=>u.id===id);
         state.usuarios = state.usuarios.filter(u=>u.id!==id);
-        await saveConfig();
+        await excluirUsuario(alvo && alvo.email);
         render();
       }
     });
