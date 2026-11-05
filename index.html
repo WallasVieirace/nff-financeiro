@@ -48,8 +48,12 @@
     color:#fff;
     display:flex;
     flex-direction:column;
-    position:relative;
-    overflow:hidden;
+    position:sticky;
+    top:0;
+    align-self:flex-start;
+    height:100vh;
+    overflow-x:hidden;
+    overflow-y:auto;
   }
   .sidebar::before{
     content:"";
