@@ -248,6 +248,8 @@
 
   /* table */
   table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-scroll table{ min-width:560px; }
   thead th{
     text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.07em;
     color:var(--ink-soft); font-weight:600; padding:0 10px 10px; border-bottom:1px solid var(--paper-line);
@@ -2336,6 +2338,7 @@ function dashboardView(){
         <span class="hint" style="cursor:pointer; text-decoration:underline;" data-nav="lancamentos">ver todos</span>
       </div>
       ${recentes.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Data</th><th>Descrição</th><th>Classificação</th><th>Tipo</th><th>Status</th><th style="text-align:right">Valor</th></tr></thead>
         <tbody>
@@ -2353,6 +2356,7 @@ function dashboardView(){
           `).join("")}
         </tbody>
       </table>` : `<div class="empty-state"><div class="glyph">📋</div><div class="t">Sem lançamentos no período</div></div>`}
+      </div>
     </div>
   `;
 }
@@ -2533,7 +2537,7 @@ function lancamentosView(){
           </div>
           <input id="fBusca" type="text" placeholder="Buscar por descrição, cliente/fornecedor ou classificação…" value="${filters.busca}" style="min-width:260px;" />
         </div>
-        <div style="display:flex; gap:8px; flex-shrink:0;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn ghost" id="btnExportExcelLancamentos">${ICONS.exportIc} Exportar Excel</button>
           <button class="btn ghost" id="btnPrintLancamentos">${ICONS.print} Imprimir / Salvar PDF</button>
         </div>
@@ -2549,6 +2553,7 @@ function lancamentosView(){
         </div>
 
       ${list.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Data</th><th>Descrição</th><th>Classificação</th><th>Pagamento</th><th>Tipo</th><th>Status</th><th style="text-align:right">Valor</th><th></th></tr></thead>
         <tbody>
@@ -2585,6 +2590,7 @@ function lancamentosView(){
           </tr>
         </tfoot>
       </table>` : `<div class="empty-state"><div class="glyph">📋</div><div class="t">Nenhum lançamento encontrado</div>Ajuste os filtros ou registre um novo lançamento.</div>`}
+      </div>
       </div>
 
       ${list.length > LANCAMENTOS_POR_PAGINA ? `
@@ -2768,6 +2774,7 @@ function pagamentosView(){
         );
         if(!filtradas.length) return `<div class="empty-state"><div class="glyph">🏦</div><div class="t">${state.contasBancarias.length ? "Nenhuma conta encontrada" : "Nenhuma conta bancária cadastrada"}</div>${state.contasBancarias.length ? "Ajuste os termos da busca." : "Cadastre acima as contas usadas pela NFF."}</div>`;
         return `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Banco</th><th>Agência</th><th>Conta</th><th>Tipo</th><th>Titular</th><th></th></tr></thead>
         <tbody>
@@ -2788,7 +2795,8 @@ function pagamentosView(){
             </tr>
           `).join("")}
         </tbody>
-      </table>`;
+      </table>
+      </div>`;
       })()}
     </div>
   `;
@@ -3005,6 +3013,7 @@ function conciliacaoView(){
         </div>
 
         ${linhas.length ? `
+        <div class="table-scroll">
         <table>
           <thead><tr><th>Data</th><th>Descrição</th><th>Classificação</th><th>Tipo</th><th>Status</th><th style="text-align:right">Valor</th><th style="text-align:right">Saldo corrente</th><th></th></tr></thead>
           <tbody>
@@ -3041,6 +3050,7 @@ function conciliacaoView(){
             </tr>
           </tfoot>
         </table>` : `
+        </div>
         <div class="empty-state">
           <div class="glyph">📄</div>
           <div class="t">Nenhum lançamento nesta conta ${conciliacaoPeriodo!=="all" ? "no período selecionado" : ""}</div>
@@ -3128,6 +3138,7 @@ function usuariosView(){
     <div class="panel">
       <div class="panel-head"><h2>Usuários cadastrados</h2><span class="hint">${state.usuarios.length} usuário(s)</span></div>
       ${state.usuarios.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Usuário</th><th>Cargo</th><th>Perfil</th><th>Status</th><th></th></tr></thead>
         <tbody>
@@ -3152,6 +3163,7 @@ function usuariosView(){
           `).join("")}
         </tbody>
       </table>` : `<div class="empty-state"><div class="glyph">👤</div><div class="t">Nenhum usuário cadastrado</div>Cadastre acima as pessoas que terão acesso ao programa.</div>`}
+      </div>
     </div>
   `;
 }
@@ -3228,6 +3240,7 @@ function clientesView(){
         );
         if(!filtrados.length) return `<div class="empty-state"><div class="glyph">🧾</div><div class="t">${state.clientes.length ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado"}</div>${state.clientes.length ? "Ajuste os termos da busca." : "Cadastre acima os clientes atendidos pela NFF."}</div>`;
         return `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Cliente</th><th>Tipo</th><th>Documento</th><th>Contato</th><th></th></tr></thead>
         <tbody>
@@ -3252,7 +3265,8 @@ function clientesView(){
             </tr>
           `).join("")}
         </tbody>
-      </table>`;
+      </table>
+      </div>`;
       })()}
     </div>
   `;
@@ -3330,6 +3344,7 @@ function fornecedoresView(){
         );
         if(!filtrados.length) return `<div class="empty-state"><div class="glyph">🚚</div><div class="t">${state.fornecedores.length ? "Nenhum fornecedor encontrado" : "Nenhum fornecedor cadastrado"}</div>${state.fornecedores.length ? "Ajuste os termos da busca." : "Cadastre acima os fornecedores da NFF."}</div>`;
         return `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Fornecedor</th><th>Tipo</th><th>Documento</th><th>Contato</th><th></th></tr></thead>
         <tbody>
@@ -3354,7 +3369,8 @@ function fornecedoresView(){
             </tr>
           `).join("")}
         </tbody>
-      </table>`;
+      </table>
+      </div>`;
       })()}
     </div>
   `;
@@ -3530,6 +3546,7 @@ function catReport(tipo){
         <span class="hint">${drePeriod==="all"?"todo o período":monthLabel(drePeriod)} · total R$ ${fmtMoney(total)}</span>
       </div>
       ${rows.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Classificação</th><th>Lançamentos</th><th style="text-align:right">Valor</th><th style="text-align:right">% do total</th><th class="dist-col" style="min-width:160px">Distribuição</th></tr></thead>
         <tbody>
@@ -3544,6 +3561,7 @@ function catReport(tipo){
           `).join("")}
         </tbody>
       </table>` : `<div class="empty-state"><div class="glyph">📊</div><div class="t">Sem dados para o período selecionado</div></div>`}
+      </div>
     </div>
   `;
 }
@@ -3563,6 +3581,7 @@ function fluxoCaixaReport(){
     <div class="panel">
       <div class="panel-head"><h2>Fluxo de Caixa Mensal</h2><span class="hint">${data.length} mês(es) no histórico</span></div>
       ${temMovimento ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Mês</th><th style="text-align:right">Receitas</th><th style="text-align:right">Despesas</th><th style="text-align:right">Saldo</th><th class="dist-col" style="min-width:180px">Comparativo</th></tr></thead>
         <tbody>
@@ -3580,6 +3599,7 @@ function fluxoCaixaReport(){
           `).join("")}
         </tbody>
       </table>` : `<div class="empty-state"><div class="glyph">📈</div><div class="t">Sem lançamentos suficientes</div>Registre receitas e despesas em pelo menos um mês para comparar.</div>`}
+      </div>
     </div>
   `;
 }
@@ -3602,6 +3622,7 @@ function tabelaReceitaDespesaPorGrupo(titulo, hint, linhas, emptyMsg){
     <div class="panel">
       <div class="panel-head"><h2>${titulo}</h2><span class="hint">${hint}</span></div>
       ${linhas.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>${titulo.replace("Valor por ","")}</th><th style="text-align:right">Receitas</th><th style="text-align:right">Despesas</th><th style="text-align:right">Saldo</th></tr></thead>
         <tbody>
@@ -3615,6 +3636,7 @@ function tabelaReceitaDespesaPorGrupo(titulo, hint, linhas, emptyMsg){
           `).join("")}
         </tbody>
       </table>` : `<div class="empty-state"><div class="glyph">📊</div><div class="t">${emptyMsg}</div></div>`}
+      </div>
     </div>
   `;
 }
@@ -3668,6 +3690,7 @@ function porClienteReport(){
         <span class="hint">${drePeriod==="all"?"todo o período":monthLabel(drePeriod)} · receitas · total R$ ${fmtMoney(total)}</span>
       </div>
       ${linhas.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Cliente</th><th>Lançamentos</th><th style="text-align:right">Valor</th><th style="text-align:right">% do total</th><th class="dist-col" style="min-width:160px">Distribuição</th></tr></thead>
         <tbody>
@@ -3682,6 +3705,7 @@ function porClienteReport(){
           `).join("")}
         </tbody>
       </table>` : `<div class="empty-state"><div class="glyph">🧾</div><div class="t">Sem receitas com cliente informado neste período</div></div>`}
+      </div>
     </div>
   `;
 }
@@ -3741,6 +3765,7 @@ function acessosView(){
       </div>
       ${acessosCarregando && !acessosLog.length ? `<div class="empty-state">Carregando…</div>` :
         !acessosLog.length ? `<div class="empty-state"><div class="glyph">👁</div><div class="t">Nenhum acesso registrado ainda</div></div>` : `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>E-mail</th><th>Entrada</th><th>Saída</th><th>Duração</th></tr></thead>
         <tbody>
@@ -3754,6 +3779,7 @@ function acessosView(){
           `).join("")}
         </tbody>
       </table>`}
+      </div>
     </div>
     <div class="dre-note">Visível apenas para ${ADMIN_EMAIL}. Cada linha corresponde a um login no sistema.</div>
   `;
