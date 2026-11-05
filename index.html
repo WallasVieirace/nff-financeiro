@@ -1354,6 +1354,41 @@ function fmtMoney(v){
   const n = Number(v)||0;
   return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
+
+/* ---------------------------------------------------------
+   MÁSCARA DE VALOR MONETÁRIO (R$ 0,00) — campos de valor usavam
+   <input type="number"> nativo: sem separador de milhar, fácil mudar
+   o valor sem querer com a rodinha do mouse, e visualmente diferente
+   do "R$ 0,00" usado no resto do sistema. Esses campos agora são
+   <input type="text" inputmode="decimal">, com os dígitos digitados
+   tratados como centavos (mesma lógica de qualquer caixa eletrônico):
+   1234 vira 12,34; 123456 vira 1.234,56.
+--------------------------------------------------------- */
+function formatarCentavos(valorDigitado, negativo){
+  let digits = String(valorDigitado||"").replace(/\D/g, "");
+  digits = digits.replace(/^0+(?=\d)/, "");
+  while(digits.length < 3) digits = "0" + digits;
+  const inteiro = digits.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const centavos = digits.slice(-2);
+  return (negativo ? "-" : "") + inteiro + "," + centavos;
+}
+function valorMascaraParaNumero(str){
+  if(!str) return 0;
+  const negativo = /^\s*-/.test(String(str));
+  const limpo = String(str).replace(/[^\d,]/g, "").replace(",", ".");
+  const n = Number(limpo) || 0;
+  return negativo ? -n : n;
+}
+function ligarMascaraMoeda(id, opts){
+  opts = opts || {};
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("input", ()=>{
+    const negativo = !!(opts.permiteNegativo && el.value.includes("-"));
+    el.value = formatarCentavos(el.value, negativo);
+    el.setSelectionRange(el.value.length, el.value.length);
+  });
+}
 function ultimosNMeses(refYM, n){
   const ref = (refYM === "all" || !refYM) ? thisMonthYM() : refYM;
   const [y,m] = ref.split("-").map(Number);
@@ -2412,7 +2447,7 @@ function lancamentoForm(tipo, existing){
         </div>
         <div class="field money">
           <label class="req">Valor (R$)</label>
-          <input type="number" step="0.01" min="0" name="valor" placeholder="0,00" value="${l.valor}" required />
+          <input type="text" inputmode="decimal" id="campoValorLancamento" name="valor" placeholder="0,00" value="${l.valor ? fmtMoney(l.valor) : ''}" required />
         </div>
         <div class="field full form-divider"><span>Pagamento</span></div>
         <div class="field">
@@ -2868,7 +2903,7 @@ function saldoInicialForm(conta){
       <form id="saldoInicialForm" class="form-grid">
         <div class="field">
           <label>Saldo inicial (R$)</label>
-          <input type="number" step="0.01" name="saldoInicial" placeholder="0,00" value="${conta.saldoInicial || 0}" required />
+          <input type="text" inputmode="decimal" id="campoSaldoInicial" name="saldoInicial" placeholder="0,00" value="${fmtMoney(conta.saldoInicial || 0)}" required />
         </div>
         <div class="field">
           <label>Data de referência</label>
@@ -4685,6 +4720,7 @@ function importSpreadsheet(file){
   ligarBuscaComDebounce("buscaFornecedoresInput", v => { buscaFornecedores = v; });
   ligarBuscaComDebounce("buscaContasInput", v => { buscaContas = v; });
 
+  ligarMascaraMoeda("campoValorLancamento");
   const form = document.getElementById("lancForm");
   if(form){
     form.addEventListener("submit", async e=>{
@@ -4701,7 +4737,7 @@ function importSpreadsheet(file){
         subClassificacao: fd.get("subClassificacao"),
         tipoResultado: fd.get("tipoResultado") || "Resultado",
         tipoLancamento: fd.get("tipoLancamento") || "Realizado",
-        valor: parseFloat(fd.get("valor")||0),
+        valor: valorMascaraParaNumero(fd.get("valor")),
         parte: fd.get("parte"),
         bancoId: fd.get("bancoId"),
         contaId: fd.get("contaId"),
@@ -5128,6 +5164,7 @@ function importSpreadsheet(file){
   const btnCancelarSaldoInicial = document.getElementById("btnCancelarSaldoInicial");
   if(btnCancelarSaldoInicial) btnCancelarSaldoInicial.addEventListener("click", ()=>{ editingSaldoInicial = false; render(); });
 
+  ligarMascaraMoeda("campoSaldoInicial", { permiteNegativo:true });
   const saldoInicialFormEl = document.getElementById("saldoInicialForm");
   if(saldoInicialFormEl){
     saldoInicialFormEl.addEventListener("submit", async e=>{
@@ -5136,7 +5173,7 @@ function importSpreadsheet(file){
       const idx = state.contasBancarias.findIndex(c=>c.id===conciliacaoContaId);
       if(idx > -1){
         state.contasBancarias[idx] = Object.assign({}, state.contasBancarias[idx], {
-          saldoInicial: Number(fd.get("saldoInicial")) || 0,
+          saldoInicial: valorMascaraParaNumero(fd.get("saldoInicial")),
           saldoInicialData: fd.get("saldoInicialData"),
         });
         await saveConfig();
