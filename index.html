@@ -4614,22 +4614,10 @@ function importSpreadsheet(file){
   if(fDataDe) fDataDe.addEventListener("change", e=>{ filters.dataDe = e.target.value; render(); });
   const fDataAte = document.getElementById("fDataAte");
   if(fDataAte) fDataAte.addEventListener("change", e=>{ filters.dataAte = e.target.value; render(); });
-  const fBusca = document.getElementById("fBusca");
-  if(fBusca){
-    fBusca.addEventListener("input", e=>{ filters.busca = e.target.value; render(); preserveFocus("fBusca"); });
-  }
-  const buscaClientesInput = document.getElementById("buscaClientesInput");
-  if(buscaClientesInput){
-    buscaClientesInput.addEventListener("input", e=>{ buscaClientes = e.target.value; render(); preserveFocus("buscaClientesInput"); });
-  }
-  const buscaFornecedoresInput = document.getElementById("buscaFornecedoresInput");
-  if(buscaFornecedoresInput){
-    buscaFornecedoresInput.addEventListener("input", e=>{ buscaFornecedores = e.target.value; render(); preserveFocus("buscaFornecedoresInput"); });
-  }
-  const buscaContasInput = document.getElementById("buscaContasInput");
-  if(buscaContasInput){
-    buscaContasInput.addEventListener("input", e=>{ buscaContas = e.target.value; render(); preserveFocus("buscaContasInput"); });
-  }
+  ligarBuscaComDebounce("fBusca", v => { filters.busca = v; });
+  ligarBuscaComDebounce("buscaClientesInput", v => { buscaClientes = v; });
+  ligarBuscaComDebounce("buscaFornecedoresInput", v => { buscaFornecedores = v; });
+  ligarBuscaComDebounce("buscaContasInput", v => { buscaContas = v; });
 
   const form = document.getElementById("lancForm");
   if(form){
@@ -5124,9 +5112,34 @@ function importSpreadsheet(file){
   });
 }
 
-function preserveFocus(id){
+function preserveFocus(id, cursorPos){
   const el = document.getElementById(id);
-  if(el){ el.focus(); const v=el.value; el.value=""; el.value=v; }
+  if(!el) return;
+  el.focus();
+  if(typeof cursorPos === "number" && typeof el.setSelectionRange === "function"){
+    el.setSelectionRange(cursorPos, cursorPos);
+  }
+}
+
+// campos de busca: espera uma pausa na digitação antes de re-renderizar (a
+// tabela/lista inteira é recriada a cada render, então refazer isso a cada
+// tecla pesava e, pior, perdia a posição do cursor no meio do texto — por
+// isso também guarda e restaura a posição exata do cursor, em vez do antigo
+// truque de resetar o value (que sempre jogava o cursor pro fim do campo).
+const _buscaDebounceTimers = {};
+function ligarBuscaComDebounce(id, aplicar, delayMs){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("input", e=>{
+    const valor = e.target.value;
+    const cursorPos = e.target.selectionStart;
+    clearTimeout(_buscaDebounceTimers[id]);
+    _buscaDebounceTimers[id] = setTimeout(()=>{
+      aplicar(valor);
+      render();
+      preserveFocus(id, cursorPos);
+    }, delayMs || 250);
+  });
 }
 
 /* ---------------------------------------------------------
