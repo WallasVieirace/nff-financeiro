@@ -378,11 +378,25 @@
 
   /* autenticação */
   .auth-screen{
+    position:relative; overflow:hidden;
     min-height:100vh; width:100%; display:flex; align-items:center; justify-content:center;
     background:linear-gradient(180deg, var(--navy-900), var(--navy-950)); padding:20px;
   }
-  .auth-loading{ color:rgba(255,255,255,.6); font-size:13px; }
+  #authNetworkCanvas{ position:absolute; inset:0; width:100%; height:100%; z-index:0; }
+
+  /* logo girando no eixo vertical (3D, sempre de frente) — usado tanto na
+     tela de carregamento inicial quanto em qualquer "Carregando…" do app */
+  .logo-spinner-wrap{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; perspective:700px; }
+  .spin-logo-3d{ transform-style:preserve-3d; animation: logoSpin3d 2.4s linear infinite, logoSpinGlow 2.4s ease-in-out infinite; }
+  .spin-logo-3d.lg{ width:110px; }
+  .spin-logo-3d.sm{ width:46px; }
+  @keyframes logoSpin3d{ from{ transform:rotateY(0deg); } to{ transform:rotateY(360deg); } }
+  @keyframes logoSpinGlow{ 0%,100%{ filter:drop-shadow(0 0 0 rgba(201,162,39,0)); } 50%{ filter:drop-shadow(0 0 14px rgba(201,162,39,.55)); } }
+  @media (prefers-reduced-motion: reduce){
+    .spin-logo-3d{ animation:none; }
+  }
   .auth-card{
+    position:relative; z-index:1;
     width:100%; max-width:380px; background:#fff; border-radius:18px; padding:38px 34px;
     box-shadow:0 20px 60px -20px rgba(0,0,0,.5); text-align:center;
   }
@@ -1925,6 +1939,7 @@ function sidebarSaldoWidget(){
 --------------------------------------------------------- */
 function render(){
   const root = document.getElementById("root");
+  pararRedeAuth();
 
   if(!FIREBASE_READY){
     root.innerHTML = setupScreen();
@@ -1932,7 +1947,13 @@ function render(){
   }
 
   if(!authReady){
-    root.innerHTML = `<div class="auth-screen"><div class="auth-loading">Carregando…</div></div>`;
+    root.innerHTML = `
+      <div class="auth-screen">
+        <div class="logo-spinner-wrap">
+          <img src="${LOGO_SRC}" alt="Carregando" class="spin-logo-3d lg" />
+        </div>
+      </div>
+    `;
     return;
   }
 
@@ -2046,6 +2067,7 @@ service cloud.firestore {
 function loginScreen(){
   return `
     <div class="auth-screen">
+      <canvas id="authNetworkCanvas"></canvas>
       <div class="auth-card">
         <img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA" class="auth-logo" />
         <h1>Entrar no sistema</h1>
@@ -2073,6 +2095,7 @@ function loginScreen(){
 function forgotPasswordScreen(){
   return `
     <div class="auth-screen">
+      <canvas id="authNetworkCanvas"></canvas>
       <div class="auth-card">
         <img src="${LOGO_DARK_SRC}" alt="NFF Serviços LTDA" class="auth-logo" />
         <h1>Redefinir senha</h1>
@@ -2094,7 +2117,64 @@ function forgotPasswordScreen(){
   `;
 }
 
+// fundo animado (pontos conectados por linhas, à deriva) atrás do card de
+// login/esqueci-senha — iniciado/parado junto com cada render() pra nunca
+// ficar mais de um loop de requestAnimationFrame rodando ao mesmo tempo.
+let authNetworkRAF = null;
+let authNetworkResizeHandler = null;
+function pararRedeAuth(){
+  if(authNetworkRAF){ cancelAnimationFrame(authNetworkRAF); authNetworkRAF = null; }
+  if(authNetworkResizeHandler){ window.removeEventListener("resize", authNetworkResizeHandler); authNetworkResizeHandler = null; }
+}
+function iniciarRedeAuth(){
+  const canvas = document.getElementById("authNetworkCanvas");
+  if(!canvas) return;
+  pararRedeAuth();
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const ctx = canvas.getContext("2d");
+  let w, h, pts;
+  function resize(){
+    w = canvas.width = canvas.clientWidth;
+    h = canvas.height = canvas.clientHeight;
+    const n = Math.max(18, Math.round((w*h) / 9000));
+    pts = Array.from({length:n}, () => ({
+      x: Math.random()*w, y: Math.random()*h,
+      vx: (Math.random()-0.5)*0.18, vy: (Math.random()-0.5)*0.18
+    }));
+  }
+  function tick(){
+    ctx.clearRect(0,0,w,h);
+    pts.forEach(p=>{
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0||p.x>w) p.vx*=-1;
+      if(p.y<0||p.y>h) p.vy*=-1;
+    });
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const a=pts[i], b=pts[j];
+        const d = Math.hypot(a.x-b.x, a.y-b.y);
+        const maxD = w*0.16;
+        if(d < maxD){
+          ctx.strokeStyle = `rgba(201,162,39,${(0.22*(1-d/maxD)).toFixed(3)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        }
+      }
+    }
+    pts.forEach(p=>{
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.beginPath(); ctx.arc(p.x,p.y,1.4,0,Math.PI*2); ctx.fill();
+    });
+    authNetworkRAF = requestAnimationFrame(tick);
+  }
+  authNetworkResizeHandler = resize;
+  window.addEventListener("resize", authNetworkResizeHandler);
+  resize();
+  tick();
+}
+
 function attachAuthHandlers(){
+  iniciarRedeAuth();
   const loginForm = document.getElementById("loginForm");
   if(loginForm){
     loginForm.addEventListener("submit", async e=>{
@@ -2246,7 +2326,7 @@ function getAvailableCompetencias(){
 }
 
 function viewContent(){
-  if(!ready) return `<div class="empty-state">Carregando…</div>`;
+  if(!ready) return `<div class="empty-state"><div class="logo-spinner-wrap"><img src="${LOGO_DARK_SRC}" alt="Carregando" class="spin-logo-3d sm" /></div></div>`;
   if(currentView === "dashboard") return dashboardView();
   if(currentView === "nova-receita") return podeEditar() ? lancamentoForm("receita") : acessoNegadoView();
   if(currentView === "nova-despesa") return podeEditar() ? lancamentoForm("despesa") : acessoNegadoView();
