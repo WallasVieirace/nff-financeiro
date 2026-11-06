@@ -4912,19 +4912,25 @@ function importSpreadsheet(file){
       const data = new Uint8Array(ev.target.result);
       const wb = XLSX.read(data, {type:"array", cellDates:true});
       if(!wb.SheetNames.length) throw new Error("A planilha não contém nenhuma aba.");
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, {defval:""});
-      if(!rows.length){
-        alert("Essa planilha está vazia ou não contém uma tabela de dados na primeira aba.");
-        return;
-      }
-      const primeiraLinha = Object.keys(rows[0]).map(k=>k.trim().toLowerCase());
+
+      // nem sempre a tabela de dados está na primeira aba (ex.: extratos de
+      // banco costumam ter uma aba de capa/resumo antes da aba com as
+      // colunas de verdade) — testa cada aba, na ordem, e usa a primeira
+      // cujas colunas batem com o modelo esperado.
       const colunasEsperadas = ["data","descrição","classificação","valor"];
-      const faltando = colunasEsperadas.filter(c=> !primeiraLinha.some(h=>h.includes(c.replace("ç","c").slice(0,4)) || h===c));
-      if(faltando.length >= 3){
+      let rows = null;
+      for(const nomeAba of wb.SheetNames){
+        const linhasAba = XLSX.utils.sheet_to_json(wb.Sheets[nomeAba], {defval:""});
+        if(!linhasAba.length) continue;
+        const cabecalho = Object.keys(linhasAba[0]).map(k=>k.trim().toLowerCase());
+        const faltandoAba = colunasEsperadas.filter(c=> !cabecalho.some(h=>h.includes(c.replace("ç","c").slice(0,4)) || h===c));
+        if(faltandoAba.length < 3){ rows = linhasAba; break; }
+      }
+      if(!rows){
         alert("Essa planilha não parece seguir o modelo esperado.\n\n"+
           "Colunas mínimas: Data, Descrição, Classificação, Valor (e opcionalmente Tipo, Cliente/Fornecedor, Banco, Conta, Tipo de Transação, Status, Observações).\n\n"+
           "Se a planilha não tiver a coluna \"Tipo\", o sistema identifica Receita/Despesa automaticamente pelo sinal do valor (negativo = despesa).\n\n"+
+          (wb.SheetNames.length > 1 ? `Nenhuma das ${wb.SheetNames.length} abas da planilha tem essas colunas. ` : "")+
           "Clique em \"Baixar modelo de planilha\" para ver um exemplo pronto.");
         return;
       }
