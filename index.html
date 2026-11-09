@@ -880,6 +880,52 @@
 .confirm-modal-text{ font-size:13.5px; color:var(--ink); line-height:1.5; white-space:pre-wrap; }
 .confirm-modal-actions{ display:flex; gap:10px; width:100%; margin-top:4px; }
 .confirm-modal-actions .btn{ flex:1; }
+
+/* ---------------------------------------------------------
+   MANUAL DO USUÁRIO
+--------------------------------------------------------- */
+.manual-hero{ background:linear-gradient(170deg, var(--navy-900), var(--navy-950)); color:#fff; border:0; }
+.manual-hero h2{ font-family:'Sora',sans-serif; font-size:21px; font-weight:800; margin:2px 0 8px; color:#fff; }
+.manual-hero p{ color:rgba(255,255,255,.72); font-size:12.5px; line-height:1.6; max-width:560px; margin:0; }
+.manual-hero .kicker{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; }
+.manual-stats{ display:grid; grid-template-columns:repeat(auto-fit, minmax(100px,1fr)); gap:10px; margin-top:20px; }
+.manual-stats .st{ background:rgba(255,255,255,.08); border-radius:10px; padding:11px 10px; text-align:center; }
+.manual-stats .st b{ display:block; font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:700; color:var(--gold); }
+.manual-stats .st span{ font-size:9.5px; color:rgba(255,255,255,.62); }
+
+.manual-toc{ display:grid; grid-template-columns:repeat(auto-fit, minmax(230px,1fr)); gap:3px 22px; }
+.manual-toc a{ display:flex; gap:8px; padding:6px 0; font-size:12.5px; color:var(--ink); text-decoration:none; border-bottom:1px dotted var(--paper-line); }
+.manual-toc a .num{ font-family:'IBM Plex Mono',monospace; color:var(--gold); font-weight:700; width:17px; flex-shrink:0; }
+.manual-toc a:hover{ color:var(--navy-900); }
+.manual-toc-label{ font-size:10px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--gold); margin:13px 0 3px; }
+
+.manual-chapter{ scroll-margin-top:16px; }
+.manual-chapter-head{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.manual-chapter-num{ width:32px; height:32px; border-radius:9px; background:var(--navy-900); color:var(--gold); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:12.5px; flex-shrink:0; }
+.manual-restrict{ display:inline-block; background:rgba(201,162,39,.12); color:#8a6f1c; border:1px solid rgba(201,162,39,.35); border-radius:999px; padding:3px 11px; font-size:10.5px; font-weight:700; margin-bottom:12px; }
+.manual-resumo{ background:var(--paper); border:1px solid var(--paper-line); border-radius:10px; padding:13px 16px; margin-bottom:14px; font-size:12.5px; line-height:1.5; }
+.manual-resumo b{ display:inline-block; background:var(--navy-900); color:var(--gold); font-size:9px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; padding:3px 9px; border-radius:999px; margin-right:8px; vertical-align:2px; }
+.manual-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media (max-width:860px){ .manual-grid2{ grid-template-columns:1fr; } }
+.manual-box{ border:1px solid var(--paper-line); border-radius:10px; padding:13px 16px; }
+.manual-box h5{ font-size:10.5px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; margin:0 0 9px; color:var(--green); }
+.manual-box.warn h5{ color:var(--red); }
+.manual-box.warn{ border-top:3px solid var(--red); }
+.manual-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px; }
+.manual-list li{ display:flex; gap:7px; font-size:12px; line-height:1.5; }
+.manual-list svg{ flex-shrink:0; width:14px; height:14px; margin-top:2px; }
+.manual-box .manual-list svg{ color:var(--green); }
+.manual-box.warn .manual-list svg{ color:var(--red); }
+.manual-faq-q{ font-weight:700; font-size:12.5px; margin-bottom:5px; }
+.manual-faq-a{ font-size:12px; color:var(--ink-soft); line-height:1.55; }
+.manual-faq-tip{ margin-top:7px; padding-left:9px; border-left:2px solid var(--gold); font-size:11px; color:var(--ink-soft); }
+.manual-gloss{ display:grid; grid-template-columns:170px 1fr; column-gap:16px; }
+.manual-gloss dt{ font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--navy-900); font-size:12px; padding:10px 0; border-top:1px solid var(--paper-line); }
+.manual-gloss dd{ margin:0; font-size:12px; color:var(--ink); line-height:1.5; padding:10px 0; border-top:1px solid var(--paper-line); }
+.manual-gloss dt:first-of-type, .manual-gloss dd:first-of-type{ border-top:0; }
+@media print{
+  .manual-chapter, .manual-hero, .manual-toc{ break-inside:avoid; }
+}
 </style>
 </head>
 <body>
@@ -1873,6 +1919,7 @@ const ICONS = {
   prevPage: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>`,
   nextPage: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>`,
   alert: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v5"/><path d="M12 16.5h.01"/><circle cx="12" cy="12" r="9"/></svg>`,
+  manual: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M9 7h8M9 11h8"/></svg>`,
 };
 
 // modal de confirmação próprio, no lugar do confirm() nativo do navegador —
@@ -1991,6 +2038,8 @@ function render(){
         ${navBtn("clientes","clientes","Clientes")}
         ${navBtn("fornecedores","fornecedores","Fornecedores")}
         ${podeGerenciarUsuarios() ? navBtn("usuarios","usuarios","Usuários") : ""}
+        <div class="nav-label">Ajuda</div>
+        ${navBtn("manual","manual","Manual do Usuário")}
       </div>
       ${sidebarSaldoWidget()}
       <div class="sidebar-foot">
@@ -2243,6 +2292,7 @@ function topbar(){
     "analise-gerencial":["Análise Gerencial","Relatório executivo para sócios e acionistas — "+(gerencialCompetencia==="all" ? "todas as competências" : monthLabel(gerencialCompetencia))],
     acessos:["Controle de Acesso","Histórico de entradas no sistema"],
     conciliacao:["Conciliação Bancária","Extrato de lançamentos por conta, com saldo inicial e saldo corrente"],
+    manual:["Manual do Usuário","Guia completo de todas as telas do sistema"],
   };
   const [t,s] = titles[currentView] || titles.dashboard;
   return `
@@ -2341,6 +2391,7 @@ function viewContent(){
   if(currentView === "analise-gerencial") return analiseGerencialView();
   if(currentView === "acessos") return (authUser && authUser.email === ADMIN_EMAIL) ? acessosView() : acessoNegadoView();
   if(currentView === "conciliacao") return conciliacaoView();
+  if(currentView === "manual") return manualView();
   return "";
 }
 
@@ -4069,6 +4120,310 @@ function acessosView(){
   `;
 }
 
+/* ---------------------------------------------------------
+   MANUAL DO USUÁRIO — documentação em texto de cada tela do
+   sistema (resumo, o que já existe, pontos de atenção), no
+   próprio visual navy/dourado do app. Sem prints de tela aqui
+   de propósito: como é a página seguinte no menu, o usuário já
+   está a um clique de ver a tela de verdade.
+--------------------------------------------------------- */
+const MANUAL_CHECK_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="20 6 9 17 4 12"/></svg>`;
+const MANUAL_WARN_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+
+const MANUAL_CHAPTERS = [
+  { num:1, grupo:"Primeiros passos", titulo:"Acessando o sistema",
+    resumo:"Acesso restrito a usuários cadastrados pelo administrador, com e-mail institucional e senha. A sessão não persiste — é preciso logar de novo a cada vez que o sistema é reaberto.",
+    existe:[
+      "Fundo animado com pontos conectados, atrás do card de login",
+      'Campo de e-mail e senha, com opção "Esqueci minha senha" (envia link por e-mail)',
+      "Assistente de IA (bolha no canto inferior direito) já disponível mesmo antes de logar",
+    ],
+    atencao:[
+      "Sem cadastro prévio pelo administrador, o acesso não é liberado — mesmo com e-mail institucional válido",
+      "A sessão não persiste entre aberturas — ao fechar o navegador, é preciso logar de novo",
+    ]},
+  { num:2, grupo:"Primeiros passos", titulo:"Assistente de IA",
+    resumo:"Bolha de chat no canto inferior direito, disponível em qualquer tela — inclusive antes de logar. Responde dúvidas sobre como usar o sistema e calcula na hora números do mês atual.",
+    existe:[
+      'FAQ fixo com busca tolerante a variações de palavra — "lançar", "lancei" e "lançamento" contam como a mesma pergunta',
+      "Perguntas sobre faturamento, despesas e resultado do mês atual são calculadas em tempo real, sem depender do FAQ fixo",
+      "Chips de sugestão de perguntas rápidas, e um aviso automático depois de 1 minuto sem interação",
+      "Cobre os principais fluxos: lançar receita/despesa, saldo inicial, competência x caixa, margem de contribuição, ponto de equilíbrio, exportar/imprimir, instalar como app",
+    ],
+    atencao:[
+      "Depois do aviso de inatividade, a conversa fecha sozinha se não houver resposta em mais 30 segundos",
+      "As respostas sobre números do mês vêm sempre por competência, não por caixa",
+    ]},
+  { num:3, grupo:"Lançamentos", titulo:"Dashboard",
+    resumo:"Tela inicial do sistema: panorama de receitas, despesas, saldo e margem do período selecionado, com gráfico de evolução mensal e os maiores clientes/categorias.",
+    existe:[
+      "4 cards com ícone e chip de tendência (↑/↓ vs. mês anterior): Receitas, Despesas, Saldo e Margem líquida",
+      "Gráfico de evolução mensal (últimos 6 meses) e barras de receitas/despesas por classificação",
+      "Filtro por competência/caixa e por conta bancária, no topo da tela",
+      "Faixa de alerta no topo para lançamentos pendentes ou atrasados",
+    ],
+    atencao:[
+      "Os números mudam de significado conforme o filtro: competência olha quando o serviço foi prestado, caixa olha quando o dinheiro entrou/saiu de fato",
+      'O card "Saldo" parte do saldo inicial da conta quando uma conta específica está filtrada',
+    ]},
+  { num:4, grupo:"Lançamentos", titulo:"Nova receita / Nova despesa",
+    resumo:"Formulário pra registrar uma receita ou despesa — os mesmos campos nas duas telas, só muda o tipo e a cor de destaque (verde para receita, vermelho para despesa).",
+    existe:[
+      "Campo de valor com máscara de moeda BR (1.234,56), formatando enquanto digita",
+      "Competência preenchida automaticamente a partir da data, mas editável à parte",
+      "Campos de banco, conta bancária e tipo de transação — um nome novo digitado é cadastrado automaticamente",
+      "Status (Pago/Pendente/Atrasado) e Tipo de lançamento (Realizado/Previsto)",
+    ],
+    atencao:[
+      "Cliente/Fornecedor aqui é um campo de texto livre — não cria cadastro em Clientes/Fornecedores automaticamente, serve só pra identificar quem recebeu ou pagou",
+      '"Tipo de despesa: Operacional" tira o lançamento do cálculo padrão da DRE, usado para despesas que não são do resultado do período',
+    ]},
+  { num:5, grupo:"Lançamentos", titulo:"Todos os lançamentos",
+    resumo:"Histórico completo de receitas e despesas, com busca, filtros combináveis, paginação de 50 em 50 e exportação para Excel ou PDF.",
+    existe:[
+      "Filtros por tipo, período, conta bancária e intervalo de datas, combináveis entre si",
+      "Busca por descrição, cliente/fornecedor ou classificação, com debounce de 250ms",
+      'Paginação de 50 lançamentos por página — "Imprimir/PDF" sempre traz a lista completa, sem paginar',
+      "Edição e exclusão linha a linha, com modal de confirmação próprio antes de excluir",
+    ],
+    atencao:[
+      "Mudar qualquer filtro volta a lista pra página 1 automaticamente",
+      'Perfil "Somente Leitura" não vê os botões de editar/excluir nem o menu de novo lançamento',
+    ]},
+  { num:6, grupo:"Relatórios & Análise", titulo:"Relatórios",
+    resumo:"Central de relatórios prontos: DRE e mais 6 recortes diferentes dos mesmos lançamentos, todos com filtro de período e exportação em PDF.",
+    existe:[
+      "Abas: DRE, Receitas por Classificação, Despesas por Classificação, Fluxo de Caixa Mensal, Valor por Banco, Valor por Conta Bancária, Valor por Cliente",
+      'Filtro por competência ou caixa, com opção "Resultado com Mútuo" pra incluir ou excluir esses lançamentos do cálculo',
+      "A DRE segue o modelo gerencial: impostos descontados da receita bruta, despesas agrupadas pelo grupo definido em cada classificação",
+      'Botão "Imprimir / Salvar PDF" em todas as abas',
+    ],
+    atencao:[
+      "O grupo DRE de cada classificação (Custo/Despesa/Imposto) é definido em Cadastros → Classificações, não aqui — se uma despesa aparecer na linha errada, é lá que se corrige",
+    ]},
+  { num:7, grupo:"Relatórios & Análise", titulo:"Análise",
+    resumo:"Leitura automática do cenário financeiro do mês: pontos positivos e pontos de atenção gerados por regras, sem precisar interpretar os números sozinho.",
+    existe:[
+      "Resultado e margem líquida do período em destaque, com seletor de mês no topo",
+      '"Pontos positivos": resultado positivo, margem saudável, ausência de lançamentos atrasados',
+      '"Pontos de atenção": concentração de receita num único cliente, maior linha de custo, total de pendentes',
+    ],
+    atencao:[
+      "É uma leitura automática por regras fixas (comparação com o mês anterior, margem, concentração, inadimplência) — não substitui a avaliação de um contador ou gestor financeiro",
+      "Considera só o mês selecionado no seletor do topo, não um acumulado",
+    ]},
+  { num:8, grupo:"Relatórios & Análise", titulo:"Análise Gerencial",
+    resumo:"Relatório executivo completo para sócios e acionistas: capa personalizada, visão competência x caixa, ponto de equilíbrio e diretrizes comerciais, pronto para imprimir.",
+    existe:[
+      'Capa com identidade visual própria (fundo navy, selo "Grupo NFF · Uso interno e restrito")',
+      "Filtros por competência, data de lançamento e banco, aplicados ao relatório inteiro",
+      "Seção de resultado comparando base competência x base caixa lado a lado",
+      "Página de projeção comercial com ponto de equilíbrio e diretrizes de diversificação de carteira",
+    ],
+    atencao:[
+      "É o relatório mais pesado do sistema — com muitos lançamentos, gerar ou imprimir pode demorar alguns segundos",
+      'O texto da capa da página 2 ("Projeção Comercial e Ponto de Equilíbrio") é fixo, independente do filtro aplicado',
+    ]},
+  { num:9, grupo:"Bancos", titulo:"Conciliação Bancária",
+    resumo:"Extrato por conta bancária, partindo do saldo inicial cadastrado — mostra entradas, saídas e saldo corrente lançamento a lançamento.",
+    existe:[
+      "Ícone + chip de tendência (↑/↓ vs. mês anterior) nos cards de Entradas, Saídas e Saldo atual, quando um período específico está selecionado",
+      "Extrato com saldo corrente calculado linha a linha, arrastando o saldo mesmo com filtro de período aplicado",
+      'Botão "Alterar saldo inicial", com data de referência',
+      "Exportação em Excel e em PDF",
+    ],
+    atencao:[
+      "Trocar a conta bancária selecionada no topo muda todo o extrato — fácil de esquecer qual conta está sendo vista",
+      'O saldo inicial é um valor de referência fixo, sem "mês anterior" pra comparar, por isso não tem chip de tendência',
+    ]},
+  { num:10, grupo:"Cadastros", titulo:"Classificações",
+    resumo:"Categorias usadas nos lançamentos (receita e despesa), com grupo DRE para despesas e uma ferramenta de reclassificação em lote.",
+    existe:[
+      "Duas listas independentes: Classificações de Receita e de Despesa",
+      "Despesa tem um campo extra de grupo (Custos, Despesas ou Impostos) — define em qual linha da DRE ela entra",
+      '"Reclassificar lançamentos em lote": move todos os lançamentos de uma classificação pra outra de uma vez',
+    ],
+    atencao:[
+      'Excluir uma classificação em uso pede confirmação, mas não reclassifica os lançamentos afetados automaticamente — use "Reclassificar em lote" antes',
+      "Nome de classificação duplicado é permitido, com aviso, mas pode confundir na hora de reclassificar depois",
+    ]},
+  { num:11, grupo:"Cadastros", titulo:"Bancos e Pagamentos",
+    resumo:"Bancos e tipos de transação usados nos lançamentos, além do cadastro de contas bancárias com saldo inicial.",
+    existe:[
+      "Listas de Bancos e de Tipos de Transação, com adição rápida só pelo nome",
+      "Formulário de Nova conta bancária: banco, tipo (Corrente/Poupança), agência, número e titular",
+    ],
+    atencao:[
+      "A conta bancária só aparece nos seletores de Lançamentos e Conciliação depois de cadastrada aqui — digitar um banco novo direto no formulário de lançamento cadastra o banco, mas não cria a conta",
+    ]},
+  { num:12, grupo:"Cadastros", titulo:"Clientes",
+    resumo:"Cadastro de clientes com CPF ou CNPJ, usado como referência — não é obrigatório para lançar uma receita.",
+    existe:[
+      "Formulário com tipo de pessoa (física/jurídica), documento, nome, telefone, e-mail, endereço e observações",
+      "Checagem de CPF/CNPJ duplicado ao cadastrar ou editar, comparando só os dígitos, ignorando formatação",
+      "Busca por nome, documento, telefone ou e-mail na lista de cadastrados",
+    ],
+    atencao:[
+      'Cadastrar um cliente aqui não altera lançamentos já existentes — o vínculo é pelo nome digitado no campo "Cliente" do lançamento, não por um identificador',
+    ]},
+  { num:13, grupo:"Cadastros", titulo:"Fornecedores",
+    resumo:"Mesmo cadastro de Clientes, só que para fornecedores — CPF/CNPJ, dados de contato e checagem de duplicidade.",
+    existe:[
+      "Idêntico ao cadastro de Clientes: tipo de pessoa, documento, nome, contato e endereço",
+      "Mesma checagem de CPF/CNPJ duplicado, independente da lista de Clientes",
+    ],
+    atencao:[
+      "Clientes e Fornecedores são listas separadas — o mesmo CNPJ pode estar cadastrado nas duas ao mesmo tempo, por exemplo uma empresa que é cliente e também fornece algo pra NFF",
+    ]},
+  { num:14, grupo:"Cadastros", titulo:"Usuários",
+    resumo:"Pessoas com acesso ao sistema — cada uma precisa estar cadastrada aqui pelo administrador antes de conseguir logar.",
+    existe:[
+      "Cadastro com nome, e-mail, telefone, cargo, perfil de acesso (Administrador/Financeiro/Padrão/Somente Leitura) e status",
+      "Checagem de e-mail duplicado ao cadastrar ou editar",
+      "Trocar o e-mail de um usuário já cadastrado atualiza o registro corretamente, sem deixar duplicata",
+    ],
+    atencao:[
+      "Cadastrar aqui não cria a senha — isso é feito separadamente; esta tela só controla quem está autorizado a entrar",
+      'Perfil "Somente Leitura" é bloqueado também pelas regras do Firestore, não só escondido na tela — mesmo tentando pelo console do navegador, não grava nada',
+    ]},
+  { num:15, grupo:"Administração", titulo:"Controle de Acesso", restrito:"Acesso restrito ao administrador principal",
+    resumo:"Histórico de logins no sistema: quem entrou, quando, e por quanto tempo ficou.",
+    existe:[
+      "Lista com e-mail, entrada, saída e duração de cada sessão, das mais recentes pra mais antigas",
+      'Botão "Atualizar" pra recarregar sem sair da tela',
+    ],
+    atencao:[
+      "Só o e-mail definido como administrador principal do sistema vê esta tela — nem outros usuários com perfil Administrador têm acesso",
+      'Uma sessão sem "saída" registrada (navegador fechado sem logout) fica sem duração calculada',
+    ]},
+  { num:16, grupo:"Administração", titulo:"Importar / Exportar dados",
+    resumo:"Menu de dados e backup: exportar/importar planilhas de lançamentos, baixar o modelo pronto, e a zona de risco pra apagar tudo.",
+    existe:[
+      "Exportar dados (backup .json completo) e Importar dados (.json de backup, ou .xlsx/.csv de planilha)",
+      "Baixar modelo de planilha, já no formato esperado pelo importador",
+      "Exportar dados completos (Power BI), em outro formato de exportação",
+      "O importador de planilha testa todas as abas do arquivo, não só a primeira — útil para extratos bancários que trazem uma aba de capa antes da tabela de verdade",
+    ],
+    atencao:[
+      '"Apagar todos os lançamentos" (Zona de Risco) é permanente e pede confirmação dupla: o modal de confirmação e depois digitar "APAGAR"',
+      "Importar um backup .json substitui TODOS os dados atuais — lançamentos, classificações e usuários",
+    ]},
+];
+
+const MANUAL_FAQ = [
+  { q:"Por que um valor no Dashboard é diferente do que vejo em Relatórios?",
+    a:"Confira o filtro de competência/caixa ativo em cada tela — os dois modos mostram números diferentes para o mesmo período, e o filtro não é compartilhado entre telas.",
+    tip:"O Dashboard também pode estar filtrado por uma conta bancária específica, o que muda o card de Saldo." },
+  { q:"Esqueci minha senha, o que fazer?",
+    a:'Use "Esqueci minha senha" na tela de login — o sistema envia um link de redefinição para o seu e-mail institucional.',
+    tip:"O link só funciona para e-mails já cadastrados pelo administrador em Usuários." },
+  { q:"Dá para acessar o sistema pelo celular?",
+    a:"Sim — o sistema é instalável como PWA (ícone próprio, tela cheia) e também funciona normalmente pelo navegador do celular, sem instalar nada.",
+    tip:'No Android use "Instalar app" no menu do Chrome; no iPhone, "Adicionar à Tela de Início" no Safari.' },
+  { q:"Um lançamento sumiu da lista, o que aconteceu?",
+    a:"Provavelmente um filtro ativo (tipo, período, conta ou busca) está escondendo ele, ou ele está em outra página da paginação.",
+    tip:"Limpe os filtros um a um, ou use a busca por um trecho da descrição." },
+  { q:'Perfil "Somente Leitura" pode fazer alguma alteração?',
+    a:"Não, em nenhuma tela — nem pela interface nem contornando pelo navegador, porque as regras do Firestore bloqueiam escrita para esse perfil diretamente no servidor.",
+    tip:null },
+];
+
+const MANUAL_GLOSSARIO = [
+  ["Competência", "Mês a que o lançamento pertence economicamente (quando o serviço foi prestado), mesmo que o pagamento aconteça depois."],
+  ["Caixa", "Mês em que o dinheiro realmente entrou ou saiu da conta, independente da competência."],
+  ["Margem de contribuição", "Receita líquida menos os custos diretos, antes das despesas administrativas."],
+  ["Ponto de equilíbrio", "Faturamento mínimo pra cobrir todas as despesas, sem lucro nem prejuízo."],
+  ["Saldo inicial", '"Ponto zero" de uma conta bancária, a partir do qual o sistema soma receitas e subtrai despesas pagas.'],
+  ["DRE", "Demonstração do Resultado do Exercício — relatório que mostra receitas, custos e resultado do período."],
+  ["Grupo DRE", "Classificação de uma categoria de despesa como Custo, Despesa administrativa ou Imposto, usada pra montar a DRE."],
+  ["Perfil de acesso", "Nível de permissão de um usuário: Administrador/Financeiro (acesso total), Padrão (opera o dia a dia) ou Somente Leitura (só consulta)."],
+  ["Status do lançamento", "Pago, Pendente ou Atrasado — indica se o valor já foi efetivamente recebido/pago."],
+  ["Tipo de lançamento", "Realizado (já aconteceu) ou Previsto (ainda vai acontecer, usado em projeções)."],
+  ["PWA", "Progressive Web App — permite instalar o sistema como aplicativo no celular, com ícone próprio."],
+];
+
+function manualChapterHtml(c){
+  return `
+    <div class="panel manual-chapter" id="manual-cap-${c.num}">
+      <div class="manual-chapter-head">
+        <div class="manual-chapter-num">${c.num}</div>
+        <div style="min-width:0;">
+          <div class="hint" style="margin-bottom:2px;">${c.grupo}</div>
+          <h2 style="margin:0; font-size:17px;">${c.titulo}</h2>
+        </div>
+      </div>
+      ${c.restrito ? `<div class="manual-restrict">${c.restrito}</div>` : ""}
+      <div class="manual-resumo"><b>Resumo</b>${c.resumo}</div>
+      <div class="manual-grid2">
+        <div class="manual-box">
+          <h5>O que já existe</h5>
+          <ul class="manual-list">${c.existe.map(it=>`<li>${MANUAL_CHECK_SVG}<span>${it}</span></li>`).join("")}</ul>
+        </div>
+        <div class="manual-box warn">
+          <h5>Pontos de atenção</h5>
+          <ul class="manual-list">${c.atencao.map(it=>`<li>${MANUAL_WARN_SVG}<span>${it}</span></li>`).join("")}</ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function manualView(){
+  const grupos = [];
+  MANUAL_CHAPTERS.forEach(c=>{ if(!grupos.includes(c.grupo)) grupos.push(c.grupo); });
+  const totalCadastros = (state.clientes||[]).length + (state.fornecedores||[]).length;
+  return `
+    <div class="panel manual-hero">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <div>
+          <div class="kicker" style="color:var(--gold);">NFF Financeiro</div>
+          <h2>Manual do usuário</h2>
+          <p>Todas as telas do sistema, explicadas uma a uma: pra que servem, o que já existe em cada uma e os pontos de atenção de quem usa no dia a dia.</p>
+        </div>
+        <button class="btn no-print" id="btnPrintManual" style="background:var(--gold); color:var(--navy-950); flex-shrink:0;">${ICONS.print} Baixar PDF</button>
+      </div>
+      <div class="manual-stats">
+        <div class="st"><b>${MANUAL_CHAPTERS.length}</b><span>capítulos</span></div>
+        <div class="st"><b>${state.lancamentos.length}</b><span>lançamentos hoje</span></div>
+        <div class="st"><b>${totalCadastros}</b><span>clientes/fornecedores</span></div>
+        <div class="st"><b>${state.usuarios.length}</b><span>usuários do sistema</span></div>
+        <div class="st"><b>4</b><span>perfis de acesso</span></div>
+        <div class="st"><b>PWA</b><span>instalável no celular</span></div>
+      </div>
+    </div>
+
+    <div class="panel no-print">
+      <div class="panel-head"><h2>Sumário</h2></div>
+      <div class="manual-toc">
+        ${grupos.map(g=>`
+          <div style="grid-column:1/-1;" class="manual-toc-label">${g}</div>
+          ${MANUAL_CHAPTERS.filter(c=>c.grupo===g).map(c=>`<a href="#manual-cap-${c.num}"><span class="num">${String(c.num).padStart(2,"0")}</span>${c.titulo}</a>`).join("")}
+        `).join("")}
+      </div>
+    </div>
+
+    ${MANUAL_CHAPTERS.map(manualChapterHtml).join("")}
+
+    <div class="panel">
+      <div class="panel-head"><h2>Perguntas extras</h2><span class="hint">Dúvidas gerais, além das telas específicas</span></div>
+      ${MANUAL_FAQ.map(it=>`
+        <div class="manual-box" style="margin-bottom:12px;">
+          <div class="manual-faq-q">${it.q}</div>
+          <div class="manual-faq-a">${it.a}</div>
+          ${it.tip ? `<div class="manual-faq-tip">${it.tip}</div>` : ""}
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Glossário</h2><span class="hint">Siglas e termos usados neste manual</span></div>
+      <dl class="manual-gloss" style="margin:0;">
+        ${MANUAL_GLOSSARIO.map(([termo,desc])=>`<dt>${termo}</dt><dd>${desc}</dd>`).join("")}
+      </dl>
+    </div>
+  `;
+}
+
 function analiseView(){
   const lancs = filteredByPeriod(state.lancamentos, analisePeriod);
   const { receitas, despesas, totalR, totalD, saldo, margem } = resumoFinanceiro(lancs);
@@ -5393,6 +5748,8 @@ function importSpreadsheet(file){
   if(conciliacaoPeriodoSel) conciliacaoPeriodoSel.addEventListener("change", e=>{ conciliacaoPeriodo = e.target.value; render(); });
   const btnPrintConciliacao = document.getElementById("btnPrintConciliacao");
   if(btnPrintConciliacao) btnPrintConciliacao.addEventListener("click", ()=> window.print());
+  const btnPrintManual = document.getElementById("btnPrintManual");
+  if(btnPrintManual) btnPrintManual.addEventListener("click", ()=> window.print());
   const btnExportExcelConciliacao = document.getElementById("btnExportExcelConciliacao");
   if(btnExportExcelConciliacao) btnExportExcelConciliacao.addEventListener("click", ()=>{
     if(typeof XLSX === "undefined"){
